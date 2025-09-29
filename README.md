@@ -28,20 +28,42 @@ A comprehensive save editor for Hollywood Animal that combines the best features
 
 ## Quick Start
 
+### Online Version (Recommended)
+The easiest way to use Hollywood Save Editor is through the hosted version:
+- **Vercel**: [Deploy to Vercel](https://vercel.com/new) or visit live version
+- **No Installation**: Works directly in your browser
+- **Always Updated**: Latest features and bug fixes
+
 ### Running Locally
 ```bash
 # Start the development server
-python -m http.server 8000
+python -m http.server 8000 --directory web
 
 # Open in browser
-http://localhost:8000/web/
+http://localhost:8000
 ```
 
 ### Using the Editor
 1. **Load Save**: Drag & drop your save file or use file picker
-2. **Auto-Detection**: App automatically detects oldSave vs newSave format
-3. **Edit**: Use tabs to navigate between different editing modes
-4. **Save**: Download your edited save file
+   - Windows: `%USERPROFILE%\AppData\LocalLow\Weappy\Hollywood Animal\Saves\Profiles\0`
+2. **Edit Characters**: Use Characters tab for character management
+3. **Manage Cinemas**: Use MISC tab for cinema distribution control
+4. **Save**: Download your edited save file (keeps original filename)
+
+## Deployment
+
+### Deploy to Vercel (One-Click)
+1. **Fork this repository** on GitHub
+2. **Visit [Vercel](https://vercel.com)** and sign in
+3. **Import your forked repository**
+4. **Deploy** - No configuration needed!
+
+### Deploy to Other Platforms
+This is a static web app that works with any hosting service:
+- **Netlify**: Drag & drop the `web` folder
+- **GitHub Pages**: Enable Pages on your fork
+- **Surge.sh**: `surge web/`
+- **Any web server**: Upload `web` folder contents
 
 ## Project Structure
 ```

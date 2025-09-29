@@ -1,0 +1,26 @@
+{
+  "name": "hollywood-save-editor",
+  "version": "1.0.0",
+  "description": "Hollywood Animal Save Game Editor - Web-based save file editor for Hollywood Animal game",
+  "main": "web/index.html",
+  "scripts": {
+    "dev": "python -m http.server 8000 --directory web",
+    "start": "python -m http.server 8000 --directory web",
+    "build": "echo 'Static site - no build required'"
+  },
+  "keywords": [
+    "hollywood-animal",
+    "save-editor",
+    "game-editor",
+    "web-app"
+  ],
+  "author": "Hollywood Save Editor",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/HollywoodSaveEditor.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
