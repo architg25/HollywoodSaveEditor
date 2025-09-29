@@ -273,13 +273,22 @@ class NewSaveAdapter {
         try {
             const state = this.saveData.stateJson;
 
+            // Extract current game date from latest log
+            let gameDate = null;
+            if (state.logs && state.logs.length > 0) {
+                const latestLog = state.logs[state.logs.length - 1];
+                gameDate = latestLog.timestamp;
+            }
+
             // newSave format has studio info directly in stateJson
             return {
                 budget: state.budget || 0,
                 cash: state.cash || 0,
                 reputation: parseFloat(state.reputation || 0),
                 influence: state.influence || 0,
-                boutiqueLevel: state.boutiqueLevel || 0
+                boutiqueLevel: state.boutiqueLevel || 0,
+                studioName: state.studioName || state.startGameData?.studioName || 'Unknown Studio',
+                gameDate: gameDate
             };
         } catch (error) {
             console.warn('Could not extract studio info:', error);
