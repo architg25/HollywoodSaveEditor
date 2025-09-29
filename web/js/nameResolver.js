@@ -3,7 +3,7 @@
  * Handles mapping character name IDs to actual names
  */
 
-export class NameResolver {
+class NameResolver {
     constructor() {
         this.names = {};
     }

@@ -3,7 +3,7 @@
  * Handles detection and validation of newSave formats with version flexibility
  */
 
-export class SaveFormatManager {
+class SaveFormatManager {
     constructor() {
         this.knownVersions = [
             '0.8.50EA', '0.8.51EA', '0.8.52EA', '0.8.53EA', '0.8.54EA'
@@ -253,7 +253,7 @@ export class SaveFormatManager {
 /**
  * NewSave format adapter with enhanced features from HollyJson
  */
-export class NewSaveAdapter {
+class NewSaveAdapter {
     constructor(saveData) {
         this.saveData = saveData;
         this.formatManager = new SaveFormatManager();

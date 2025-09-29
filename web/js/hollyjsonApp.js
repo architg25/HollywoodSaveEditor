@@ -3,8 +3,7 @@
  * Recreates the exact functionality and workflow of HollyJson
  */
 
-import { SaveFormatManager, NewSaveAdapter } from './saveFormat.js';
-import { NameResolver } from './nameResolver.js';
+// Classes are now loaded via script tags
 
 class HollyJsonApp {
     constructor() {
@@ -68,11 +67,19 @@ class HollyJsonApp {
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
         });
 
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             e.stopPropagation();
+            dropZone.classList.remove('dragover');
             const files = e.dataTransfer.files;
             if (files.length > 0) {
                 this.loadSaveFile(files[0]);
@@ -83,10 +90,7 @@ class HollyJsonApp {
             fileInput.click();
         });
 
-        filePickerBtn.addEventListener('click', () => {
-            fileInput.click();
-        });
-
+        // File input handling
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -94,11 +98,8 @@ class HollyJsonApp {
             }
         });
 
-        // Open save folder button
-        const openSaveFolderBtn = document.getElementById('openSaveFolderBtn');
-        if (openSaveFolderBtn) {
-            openSaveFolderBtn.addEventListener('click', this.openSaveFolder.bind(this));
-        }
+        // Try to set default directory for Windows (this has limited browser support)
+        this.setupFileInputDefaults(fileInput);
 
         // Studio controls
         document.getElementById('budgetInput').addEventListener('change', this.updateStudioInfo.bind(this));
@@ -179,6 +180,18 @@ class HollyJsonApp {
                 popup.style.display = 'none';
             }
         });
+    }
+
+    /**
+     * Setup file input with default directory hint
+     */
+    setupFileInputDefaults(fileInput) {
+        // Unfortunately, browsers don't allow setting default directories for security
+        // But we can add a title attribute with the path as a hint
+        const defaultPath = '%USERPROFILE%\\AppData\\LocalLow\\Weappy\\Hollywood Animal\\Saves\\Profiles\\0';
+        fileInput.title = `Default save location: ${defaultPath}`;
+        fileInput.setAttribute('webkitdirectory', '');
+        fileInput.removeAttribute('webkitdirectory'); // Remove immediately, just testing
     }
 
     /**
@@ -993,41 +1006,6 @@ class HollyJsonApp {
         document.getElementById('editorSection').style.display = 'flex';
     }
 
-    /**
-     * Open the save folder (platform-specific)
-     */
-    openSaveFolder() {
-        const userAgent = navigator.userAgent.toLowerCase();
-        let savePath = '';
-        let instructions = '';
-
-        if (userAgent.includes('win')) {
-            // Windows
-            savePath = '%USERPROFILE%\\AppData\\LocalLow\\Weappy\\Hollywood Animal\\Saves\\Profiles\\0';
-            instructions = `Windows: Open File Explorer and paste this path in the address bar:\n\n${savePath}\n\nOr press Win+R, type the path, and press Enter.`;
-        } else if (userAgent.includes('mac')) {
-            // macOS
-            savePath = '~/Library/Application Support/Weappy/Hollywood Animal/Saves/Profiles/0';
-            instructions = `macOS: Open Finder, press Cmd+Shift+G, and paste this path:\n\n${savePath}`;
-        } else {
-            // Linux
-            savePath = '~/.config/unity3d/Weappy/Hollywood Animal/Saves/Profiles/0';
-            instructions = `Linux: Open your file manager and navigate to:\n\n${savePath}`;
-        }
-
-        // Try to copy path to clipboard
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(savePath.replace(/\\\\/g, '\\'))
-                .then(() => {
-                    alert(`${instructions}\n\nPath copied to clipboard!`);
-                })
-                .catch(() => {
-                    alert(instructions);
-                });
-        } else {
-            alert(instructions);
-        }
-    }
 
     showMessage(text, type = 'info', duration = 3000) {
         const messagesContainer = document.getElementById('statusMessages');

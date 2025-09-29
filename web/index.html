@@ -16,26 +16,12 @@
                         <div class="upload-icon">📁</div>
                         <h2>Load Your Save File</h2>
                         <p>Drag & drop your Hollywood Animal save file here</p>
-                        <div class="save-location-hint">
-                            <details>
-                                <summary>📂 Default save locations</summary>
-                                <div class="location-info">
-                                    <p><strong>Windows:</strong><br>
-                                    <code>%USERPROFILE%\AppData\LocalLow\Weappy\Hollywood Animal\Saves\Profiles\0</code></p>
-                                    <p><strong>macOS:</strong><br>
-                                    <code>~/Library/Application Support/Weappy/Hollywood Animal/Saves/Profiles/0</code></p>
-                                    <p><strong>Linux:</strong><br>
-                                    <code>~/.config/unity3d/Weappy/Hollywood Animal/Saves/Profiles/0</code></p>
-                                </div>
-                            </details>
-                        </div>
-                        <div class="file-actions">
-                            <button class="btn btn-secondary" id="filePickerBtn">Choose File</button>
-                            <button class="btn btn-ghost" id="openSaveFolderBtn" title="Open default save folder">📂 Open Save Folder</button>
-                        </div>
+                        <p class="or-text">or</p>
                         <div style="margin-top: 1rem;">
-                            <label for="fileInput" style="display: block; margin-bottom: 4px; font-size: 11px;">Or select file directly:</label>
-                            <input type="file" id="fileInput" accept=".json,.txt" style="width: 100%; max-width: 300px; margin: 0 auto; display: block;">
+                            <input type="file" id="fileInput" accept=".json,.txt" style="width: 100%; max-width: 300px; margin: 0 auto; display: block; padding: 8px; border: 2px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                        </div>
+                        <div class="save-location-hint" style="margin-top: 1rem;">
+                            <p style="font-size: 10px; color: var(--text-muted);">File picker will open in: <code>%USERPROFILE%\AppData\LocalLow\Weappy\Hollywood Animal\Saves\Profiles\0</code></p>
                         </div>
                     </div>
                 </div>
@@ -243,6 +229,8 @@
     </div>
 
     <!-- Scripts -->
-    <script type="module" src="js/hollyjsonApp.js"></script>
+    <script src="js/saveFormat.js"></script>
+    <script src="js/nameResolver.js"></script>
+    <script src="js/hollyjsonApp.js"></script>
 </body>
 </html>
