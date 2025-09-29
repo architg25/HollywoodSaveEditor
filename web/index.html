@@ -32,6 +32,16 @@
         <section id="editorSection" class="editor-section" style="display: none;">
             <!-- Studio Info Header (HollyJson top section) -->
             <div class="studio-header">
+                <div class="studio-info">
+                    <div class="studio-display">
+                        <label>Studio Name</label>
+                        <span id="studioNameDisplay" class="info-display">-</span>
+                    </div>
+                    <div class="studio-display">
+                        <label>Current Date</label>
+                        <span id="gameDateDisplay" class="info-display">-</span>
+                    </div>
+                </div>
                 <div class="studio-controls">
                     <div class="studio-field">
                         <label>Budget</label>
@@ -80,6 +90,10 @@
                             <input type="checkbox" id="showOnlyTalent">
                             Show only Talent
                         </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="showClosedTechs">
+                            Show Closed Techs/Tags
+                        </label>
                     </div>
 
                     <!-- Character Table -->
@@ -106,9 +120,10 @@
                         <h4>Bulk Operations</h4>
                         <div class="bulk-grid">
                             <button id="maxMoodAttBtn" class="bulk-btn">Max Mood/Att</button>
-                            <button id="maxDaysBtn" class="bulk-btn">Max Days</button>
+                            <button id="maxContractDaysBtn" class="bulk-btn">Set Contract Days to Max</button>
                             <button id="maxSkillBtn" class="bulk-btn">Max Skill</button>
                             <button id="maxLimitBtn" class="bulk-btn">Max Limit</button>
+                            <button id="setContractForSkillsBtn" class="bulk-btn">Set Contract Days to Get All Skills</button>
                         </div>
                         <div class="age-section">
                             <label for="bulkAgeInput">Set Age:</label>
@@ -213,6 +228,30 @@
                             <div class="traits-list" id="characterTraits">
                                 <!-- Character traits will be populated here -->
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="detail-section skills-section">
+                        <h3>Skills (White Tags)</h3>
+                        <div class="skills-controls">
+                            <div class="skill-add">
+                                <select id="availableSkills" class="detail-select">
+                                    <option value="">Add skill...</option>
+                                </select>
+                                <button id="addSkillBtn" class="icon-btn">+</button>
+                            </div>
+                            <div class="skills-list" id="characterSkills">
+                                <!-- Character skills will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Known Sins -->
+                    <div class="detail-section sins-section">
+                        <h3>Known Sins</h3>
+                        <div class="sins-list" id="characterSins">
+                            <!-- Character sins will be populated here -->
                         </div>
                     </div>
                 </div>

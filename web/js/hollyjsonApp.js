@@ -11,6 +11,7 @@ class HollyJsonApp {
         this.adapter = null;
         this.nameResolver = new NameResolver();
         this.formatManager = new SaveFormatManager();
+        this.originalFileName = null;
 
         // Character management
         this.allCharacters = [];
@@ -45,6 +46,12 @@ class HollyJsonApp {
             "IMAGE_VIVID", "IMAGE_SOPHISTIC", "IMMORTAL", "SUPER_IMMORTAL"
         ];
 
+        this.availableSkills = [
+            "ACTION", "DRAMA", "HISTORICAL", "THRILLER", "ROMANCE",
+            "DETECTIVE", "COMEDY", "ADVENTURE", "COM", "ART",
+            "INDOOR", "OUTDOOR"
+        ];
+
         this.init();
     }
 
@@ -52,6 +59,7 @@ class HollyJsonApp {
         this.setupEventListeners();
         this.loadNameMap();
         this.populateTraitSelector();
+        this.populateSkillSelector();
     }
 
     /**
@@ -113,6 +121,7 @@ class HollyJsonApp {
         document.getElementById('professionFilter').addEventListener('change', this.updateFilters.bind(this));
         document.getElementById('showOnlyDead').addEventListener('change', this.updateFilters.bind(this));
         document.getElementById('showOnlyTalent').addEventListener('change', this.updateFilters.bind(this));
+        document.getElementById('showClosedTechs').addEventListener('change', this.updateFilters.bind(this));
 
         // Character table selection
         document.getElementById('characterTable').addEventListener('click', this.handleCharacterSelection.bind(this));
@@ -155,14 +164,18 @@ class HollyJsonApp {
 
         // Traits
         document.getElementById('addTraitBtn').addEventListener('click', this.addTrait.bind(this));
+
+        // Skills
+        document.getElementById('addSkillBtn').addEventListener('click', this.addSkill.bind(this));
     }
 
     setupMacroListeners() {
         // Bulk operations
         document.getElementById('maxMoodAttBtn').addEventListener('click', () => this.bulkSetMaxMoodAtt());
-        document.getElementById('maxDaysBtn').addEventListener('click', () => this.bulkSetMaxDays());
+        document.getElementById('maxContractDaysBtn').addEventListener('click', () => this.bulkSetMaxContractDays());
         document.getElementById('maxSkillBtn').addEventListener('click', () => this.bulkSetMaxSkill());
         document.getElementById('maxLimitBtn').addEventListener('click', () => this.bulkSetMaxLimit());
+        document.getElementById('setContractForSkillsBtn').addEventListener('click', () => this.bulkSetContractForSkills());
 
         // New age input system
         document.getElementById('setBulkAgeBtn').addEventListener('click', () => this.bulkSetAgeFromInput());
@@ -199,6 +212,7 @@ class HollyJsonApp {
             }
 
             this.saveData = saveData;
+            this.originalFileName = file.name;
             this.adapter = this.formatManager.createAdapter(saveData);
 
             // Load all data
@@ -249,6 +263,15 @@ class HollyJsonApp {
             // Traits/Labels (newSave uses "labels" array)
             labels: char.labels || [],
 
+            // Skills (whiteTagsNEW)
+            whiteTagsNEW: char.whiteTagsNEW || {},
+
+            // Blocked skills (blackTags)
+            blackTags: char.blackTags || [],
+
+            // Known sins
+            aSins: char.aSins || [],
+
             // Contract (can be null in newSave)
             contract: char.contract || {},
 
@@ -270,6 +293,11 @@ class HollyJsonApp {
     }
 
     populateStudioControls() {
+        // Studio display info
+        document.getElementById('studioNameDisplay').textContent = this.studioInfo.studioName || 'Unknown Studio';
+        document.getElementById('gameDateDisplay').textContent = this.formatDate(this.studioInfo.gameDate) || 'Unknown Date';
+
+        // Editable studio values
         document.getElementById('budgetInput').value = this.studioInfo.budget || 0;
         document.getElementById('cashInput').value = this.studioInfo.cash || 0;
         document.getElementById('reputationInput').value = (this.studioInfo.reputation || 0).toFixed(1);
@@ -352,6 +380,18 @@ class HollyJsonApp {
         });
     }
 
+    populateSkillSelector() {
+        const availableSkills = document.getElementById('availableSkills');
+        availableSkills.innerHTML = '<option value="">Add skill...</option>';
+
+        this.availableSkills.forEach(skill => {
+            const option = document.createElement('option');
+            option.value = skill;
+            option.textContent = skill.replace(/_/g, ' ');
+            availableSkills.appendChild(option);
+        });
+    }
+
     /**
      * Character filtering (HollyJson logic)
      */
@@ -361,6 +401,7 @@ class HollyJsonApp {
         this.filters.profession = document.getElementById('professionFilter').value;
         this.filters.showOnlyDead = document.getElementById('showOnlyDead').checked;
         this.filters.showOnlyTalent = document.getElementById('showOnlyTalent').checked;
+        this.filters.showClosedTechs = document.getElementById('showClosedTechs').checked;
 
         this.applyFilters();
         this.refreshCharacterList();
@@ -393,6 +434,11 @@ class HollyJsonApp {
 
             // Talent filter
             if (this.filters.showOnlyTalent && !this.isCharacterTalent(char)) {
+                return false;
+            }
+
+            // Closed techs/tags filter - show only characters with blocked skills/tags
+            if (this.filters.showClosedTechs && (!char.blackTags || char.blackTags.length === 0)) {
                 return false;
             }
 
@@ -515,6 +561,12 @@ class HollyJsonApp {
 
         // Traits
         this.populateCharacterTraits();
+
+        // Skills
+        this.populateCharacterSkills();
+
+        // Sins
+        this.populateCharacterSins();
     }
 
     clearCharacterDetails() {
@@ -536,6 +588,8 @@ class HollyJsonApp {
         document.getElementById('contractMonthlySalary').value = '';
         document.getElementById('contractWeeklySalary').value = '';
         document.getElementById('characterTraits').innerHTML = '';
+        document.getElementById('characterSkills').innerHTML = '';
+        document.getElementById('characterSins').innerHTML = '';
         document.getElementById('charPortrait').textContent = '👤';
     }
 
@@ -585,6 +639,37 @@ class HollyJsonApp {
                 <button onclick="window.hollyjsonApp.removeTrait('${trait}')">−</button>
             `;
             traitsContainer.appendChild(traitItem);
+        });
+    }
+
+    populateCharacterSkills() {
+        const skillsContainer = document.getElementById('characterSkills');
+        skillsContainer.innerHTML = '';
+
+        if (!this.selectedCharacter || !this.selectedCharacter.whiteTagsNEW) return;
+
+        Object.keys(this.selectedCharacter.whiteTagsNEW).forEach(skill => {
+            const skillItem = document.createElement('div');
+            skillItem.className = 'skill-item';
+            skillItem.innerHTML = `
+                <span>${skill.replace(/_/g, ' ')}</span>
+                <button onclick="window.hollyjsonApp.removeSkill('${skill}')">−</button>
+            `;
+            skillsContainer.appendChild(skillItem);
+        });
+    }
+
+    populateCharacterSins() {
+        const sinsContainer = document.getElementById('characterSins');
+        sinsContainer.innerHTML = '';
+
+        if (!this.selectedCharacter || !this.selectedCharacter.aSins) return;
+
+        this.selectedCharacter.aSins.forEach(sin => {
+            const sinItem = document.createElement('div');
+            sinItem.className = 'sin-item';
+            sinItem.innerHTML = `<span>${sin.replace(/_/g, ' ')}</span>`;
+            sinsContainer.appendChild(sinItem);
         });
     }
 
@@ -729,7 +814,7 @@ class HollyJsonApp {
         this.showMessage(`Set max mood and attitude for ${this.filteredCharacters.length} characters`, 'success');
     }
 
-    bulkSetMaxDays() {
+    bulkSetMaxContractDays() {
         this.filteredCharacters.forEach(char => {
             // Ensure contract exists (can be null in newSave)
             if (!char.contract) {
@@ -745,6 +830,27 @@ class HollyJsonApp {
         this.refreshCharacterList();
         this.populateCharacterDetails();
         this.showMessage(`Set max contract days for ${this.filteredCharacters.length} characters`, 'success');
+    }
+
+    bulkSetContractForSkills() {
+        // From HollyJson: Set contract days high enough to unlock all skills
+        const daysForAllSkills = 365 * 10; // 10 years should be enough for all skills
+
+        this.filteredCharacters.forEach(char => {
+            // Ensure contract exists (can be null in newSave)
+            if (!char.contract) {
+                char.contract = {};
+            }
+            if (!char._original.contract) {
+                char._original.contract = {};
+            }
+            char.contract.DaysLeft = daysForAllSkills;
+            char._original.contract.DaysLeft = daysForAllSkills;
+        });
+
+        this.refreshCharacterList();
+        this.populateCharacterDetails();
+        this.showMessage(`Set contract days to get all skills for ${this.filteredCharacters.length} characters`, 'success');
     }
 
     bulkSetMaxSkill() {
@@ -897,18 +1003,98 @@ class HollyJsonApp {
         }
     }
 
+    addSkill() {
+        if (!this.selectedCharacter) return;
+
+        const skillSelect = document.getElementById('availableSkills');
+        const skill = skillSelect.value;
+
+        if (!skill || this.selectedCharacter.whiteTagsNEW.hasOwnProperty(skill)) return;
+
+        this.selectedCharacter.whiteTagsNEW[skill] = true;
+        if (!this.selectedCharacter._original.whiteTagsNEW) {
+            this.selectedCharacter._original.whiteTagsNEW = {};
+        }
+        this.selectedCharacter._original.whiteTagsNEW[skill] = true;
+
+        this.populateCharacterSkills();
+        skillSelect.value = '';
+        this.showMessage(`Added skill: ${skill.replace(/_/g, ' ')}`, 'success');
+    }
+
+    removeSkill(skill) {
+        if (!this.selectedCharacter) return;
+
+        if (this.selectedCharacter.whiteTagsNEW.hasOwnProperty(skill)) {
+            delete this.selectedCharacter.whiteTagsNEW[skill];
+
+            if (this.selectedCharacter._original.whiteTagsNEW &&
+                this.selectedCharacter._original.whiteTagsNEW.hasOwnProperty(skill)) {
+                delete this.selectedCharacter._original.whiteTagsNEW[skill];
+            }
+
+            this.populateCharacterSkills();
+            this.showMessage(`Removed skill: ${skill.replace(/_/g, ' ')}`, 'success');
+        }
+    }
+
     /**
      * Save export
      */
-    downloadSave() {
+    async downloadSave() {
         try {
             const modifiedSave = JSON.parse(JSON.stringify(this.saveData));
-            const blob = new Blob([JSON.stringify(modifiedSave, null, 2)], { type: 'application/json' });
+            const jsonContent = JSON.stringify(modifiedSave, null, 2);
+
+            // Generate a smart filename
+            const studioName = this.studioInfo.studioName || 'Studio';
+            const gameDate = this.studioInfo.gameDate || '';
+            const timestamp = new Date().toISOString().slice(0, 10);
+
+            let suggestedName;
+            if (this.originalFileName) {
+                // Keep original name but add _edited
+                const baseName = this.originalFileName.replace(/\.[^/.]+$/, '');
+                const extension = this.originalFileName.match(/\.[^/.]+$/)?.[0] || '.json';
+                suggestedName = `${baseName}_edited${extension}`;
+            } else {
+                suggestedName = `${studioName}_${gameDate}_${timestamp}.json`.replace(/[^a-zA-Z0-9-_.]/g, '_');
+            }
+
+            // Try to use File System Access API if supported
+            if ('showSaveFilePicker' in window) {
+                try {
+                    const fileHandle = await window.showSaveFilePicker({
+                        suggestedName: suggestedName,
+                        types: [{
+                            description: 'Hollywood Animal Save Files',
+                            accept: {'application/json': ['.json']},
+                        }],
+                        startIn: 'documents' // Best we can do for default directory
+                    });
+
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(jsonContent);
+                    await writable.close();
+
+                    this.showMessage('Save file saved successfully', 'success');
+                    return;
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.warn('File System Access API failed:', error);
+                    } else {
+                        return; // User cancelled
+                    }
+                }
+            }
+
+            // Fallback to regular download
+            const blob = new Blob([jsonContent], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
 
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'hollywood_save_edited.json';
+            a.download = suggestedName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -916,7 +1102,7 @@ class HollyJsonApp {
 
             this.showMessage('Save file downloaded successfully', 'success');
         } catch (error) {
-            this.showMessage('Failed to download save: ' + error.message, 'error');
+            this.showMessage('Failed to save: ' + error.message, 'error');
         }
     }
 
