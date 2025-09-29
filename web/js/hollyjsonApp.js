@@ -219,7 +219,6 @@ class HollyJsonApp {
 
     async loadSaveFile(file) {
         try {
-            alert('File selected: ' + file.name); // Debug alert
 
             const text = await file.text();
             const saveData = JSON.parse(text);
@@ -227,7 +226,7 @@ class HollyJsonApp {
             const validation = this.formatManager.validateSave(saveData);
 
             if (!validation.isValid) {
-                alert('Save validation failed: ' + validation.error);
+                this.showMessage('Save validation failed: ' + validation.error, 'error');
                 return;
             }
 
@@ -249,10 +248,10 @@ class HollyJsonApp {
             this.refreshCharacterList();
             this.loadCinemaData();
 
-            alert(`Save loaded! Found ${this.allCharacters.length} characters.`);
+            this.showMessage(`Save loaded! Found ${this.allCharacters.length} characters.`, 'success');
 
         } catch (error) {
-            alert('Error: ' + error.message);
+            this.showMessage('Error loading save file: ' + error.message, 'error');
         }
     }
 
@@ -822,14 +821,36 @@ class HollyJsonApp {
      * Studio management
      */
     updateStudioInfo(e) {
+        if (!this.saveData || !this.saveData.stateJson) {
+            this.showMessage('No save data loaded', 'error');
+            return;
+        }
+
         const field = e.target.id.replace('Input', '');
         const value = parseFloat(e.target.value) || 0;
 
+        // Update local studio info
         this.studioInfo[field] = value;
 
-        // Update in original save data (simplified)
-        // In a full implementation, this would update the actual save structure
-        this.showMessage(`Studio ${field} updated to ${value}`, 'success');
+        // Update the actual save data
+        const state = this.saveData.stateJson;
+
+        switch(field) {
+            case 'budget':
+                state.budget = value;
+                break;
+            case 'cash':
+                state.cash = value;
+                break;
+            case 'reputation':
+                state.reputation = value.toString(); // Reputation is stored as string
+                break;
+            case 'influence':
+                state.influence = value;
+                break;
+        }
+
+        this.showMessage(`Studio ${field} updated to ${value.toLocaleString()}`, 'success');
     }
 
     /**
@@ -934,7 +955,7 @@ class HollyJsonApp {
         const targetAge = parseInt(ageInput.value);
 
         if (!targetAge || targetAge < 18 || targetAge > 99) {
-            alert('Please enter a valid age between 18 and 99');
+            this.showMessage('Please enter a valid age between 18 and 99', 'error');
             return;
         }
 
@@ -953,7 +974,7 @@ class HollyJsonApp {
 
         this.refreshCharacterList();
         this.populateCharacterDetails();
-        alert(`Set age to ${targetAge} for ${this.filteredCharacters.length} characters`);
+        this.showMessage(`Set age to ${targetAge} for ${this.filteredCharacters.length} characters`, 'success');
     }
 
     /**
