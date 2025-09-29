@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hollywood Save Editor</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Load Save Section -->
+        <section id="loadSection" class="load-section">
+            <div class="load-container">
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-content">
+                        <div class="upload-icon">📁</div>
+                        <h2>Load Your Save File</h2>
+                        <p>Drag & drop your Hollywood Animal save file here</p>
+                        <p class="or-text">or</p>
+                        <button class="btn btn-secondary" id="filePickerBtn">Choose File</button>
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Editor Section (HollyJson Layout) -->
+        <section id="editorSection" class="editor-section" style="display: none;">
+            <!-- Studio Info Header (HollyJson top section) -->
+            <div class="studio-header">
+                <div class="studio-controls">
+                    <div class="studio-field">
+                        <label>Budget</label>
+                        <input type="number" id="budgetInput" class="studio-input">
+                    </div>
+                    <div class="studio-field">
+                        <label>Cash</label>
+                        <input type="number" id="cashInput" class="studio-input">
+                    </div>
+                    <div class="studio-field">
+                        <label>Reputation</label>
+                        <input type="number" id="reputationInput" class="studio-input" step="0.1">
+                    </div>
+                    <div class="studio-field">
+                        <label>Influence</label>
+                        <input type="number" id="influenceInput" class="studio-input">
+                    </div>
+                    <div class="studio-actions">
+                        <button id="downloadBtn" class="btn btn-primary">💾 Save File</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two-Panel Layout (HollyJson style) -->
+            <div class="main-panels">
+                <!-- Left Panel: Character List -->
+                <div class="left-panel">
+                    <!-- Filters -->
+                    <div class="filter-row">
+                        <select id="studioFilter" class="filter-select">
+                            <option value="">All Studios</option>
+                        </select>
+                        <input type="text" id="searchInput" placeholder="Search..." class="search-input">
+                        <select id="professionFilter" class="filter-select">
+                            <option value="">All Professions</option>
+                        </select>
+                    </div>
+
+                    <!-- Filter Checkboxes -->
+                    <div class="checkbox-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="showOnlyDead">
+                            Show only Dead
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="showOnlyTalent">
+                            Show only Talent
+                        </label>
+                    </div>
+
+                    <!-- Character Table -->
+                    <div class="character-list">
+                        <table id="characterTable" class="character-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Prof.</th>
+                                    <th>Limit</th>
+                                    <th>Skill</th>
+                                    <th>Age</th>
+                                    <th>Days</th>
+                                </tr>
+                            </thead>
+                            <tbody id="characterTableBody">
+                                <!-- Characters populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Bulk Actions (HollyJson Macros) -->
+                    <div class="bulk-actions">
+                        <button id="macrosBtn" class="btn btn-ghost">⚙️</button>
+                        <div id="macrosPopup" class="macros-popup" style="display: none;">
+                            <div class="macros-grid">
+                                <button id="maxMoodAttBtn" class="macro-btn">Max Mood\Att</button>
+                                <button id="maxDaysBtn" class="macro-btn">Max Days</button>
+                                <button id="maxSkillBtn" class="macro-btn">Max Skill</button>
+                                <button id="maxLimitBtn" class="macro-btn">Max Limit</button>
+                                <div class="age-group">
+                                    <label>Set Age</label>
+                                    <div class="age-buttons">
+                                        <button id="setYoungBtn" class="macro-btn">Young</button>
+                                        <button id="setMidBtn" class="macro-btn">Mid</button>
+                                        <button id="setOldBtn" class="macro-btn">Old</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Character Details -->
+                <div class="right-panel">
+                    <!-- Character Info -->
+                    <div class="detail-section char-info">
+                        <h3>Char info</h3>
+                        <div class="char-info-grid">
+                            <div class="char-portrait">
+                                <div id="charPortrait" class="portrait-placeholder">👤</div>
+                            </div>
+                            <div class="char-details">
+                                <div class="detail-row">
+                                    <label>Name</label>
+                                    <input type="text" id="charName" class="detail-input">
+                                </div>
+                                <div class="detail-row">
+                                    <label>Studio Id</label>
+                                    <select id="charStudio" class="detail-select">
+                                        <option value="">Select Studio</option>
+                                    </select>
+                                </div>
+                                <div class="detail-row">
+                                    <label>Mood</label>
+                                    <input type="number" id="charMood" class="detail-input" step="0.01" min="0" max="1">
+                                    <label>Attitude</label>
+                                    <input type="number" id="charAttitude" class="detail-input" step="0.01" min="0" max="1">
+                                    <button id="maxMoodAttSingleBtn" class="icon-btn">↑</button>
+                                </div>
+                                <div class="detail-row">
+                                    <label>
+                                        <input type="checkbox" id="charIsDead">
+                                        Is Dead
+                                    </label>
+                                    <label>Age</label>
+                                    <input type="number" id="charAge" class="detail-input" min="18" max="99">
+                                    <label>Birth</label>
+                                    <span id="charBirthDate" class="detail-text"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profession Info -->
+                    <div class="detail-section profession-info">
+                        <h3>Profession: <span id="professionTitle">None</span></h3>
+                        <div class="profession-grid">
+                            <div class="profession-row">
+                                <label>Limit</label>
+                                <input type="number" id="charLimit" class="detail-input" step="0.1" min="0" max="1">
+                                <button id="maxLimitSingleBtn" class="icon-btn">↑</button>
+                                <label>Skill</label>
+                                <input type="number" id="charSkill" class="detail-input" step="0.01" min="0" max="1">
+                                <button id="maxSkillSingleBtn" class="icon-btn">↑</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contract Info -->
+                    <div class="detail-section contract-info">
+                        <h3>Contract</h3>
+                        <div class="contract-grid">
+                            <div class="contract-row">
+                                <label>Date sign</label>
+                                <span id="contractStartDate" class="detail-text"></span>
+                                <label>Days Left</label>
+                                <input type="number" id="contractDaysLeft" class="detail-input" min="0">
+                                <button id="maxDaysSingleBtn" class="icon-btn">↑</button>
+                            </div>
+                            <div class="contract-row">
+                                <label>Years</label>
+                                <input type="number" id="contractYears" class="detail-input" min="0">
+                                <label>Init fee</label>
+                                <input type="number" id="contractInitFee" class="detail-input" min="0">
+                            </div>
+                            <div class="contract-row">
+                                <label>M/s</label>
+                                <input type="number" id="contractMonthlySalary" class="detail-input" min="0">
+                                <label>W/s</label>
+                                <input type="number" id="contractWeeklySalary" class="detail-input" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Traits -->
+                    <div class="detail-section traits-section">
+                        <h3>Traits</h3>
+                        <div class="traits-controls">
+                            <div class="trait-add">
+                                <select id="availableTraits" class="detail-select">
+                                    <option value="">Select trait...</option>
+                                </select>
+                                <button id="addTraitBtn" class="icon-btn">+</button>
+                            </div>
+                            <div class="traits-list" id="characterTraits">
+                                <!-- Character traits will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Status Messages -->
+        <div id="statusMessages" class="status-messages"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/hollyjsonApp.js"></script>
+</body>
+</html>
