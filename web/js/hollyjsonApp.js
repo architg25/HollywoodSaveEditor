@@ -64,12 +64,21 @@ class HollyJsonApp {
         const fileInput = document.getElementById('fileInput');
         const filePickerBtn = document.getElementById('filePickerBtn');
 
+        // Enhanced drag and drop for cross-platform compatibility
         dropZone.addEventListener('dragover', this.handleDragOver.bind(this));
+        dropZone.addEventListener('dragenter', this.handleDragEnter.bind(this));
+        dropZone.addEventListener('dragleave', this.handleDragLeave.bind(this));
         dropZone.addEventListener('drop', this.handleFileDrop.bind(this));
         dropZone.addEventListener('click', () => fileInput.click());
 
         filePickerBtn.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+
+        // Open save folder button
+        const openSaveFolderBtn = document.getElementById('openSaveFolderBtn');
+        if (openSaveFolderBtn) {
+            openSaveFolderBtn.addEventListener('click', this.openSaveFolder.bind(this));
+        }
 
         // Studio controls
         document.getElementById('budgetInput').addEventListener('change', this.updateStudioInfo.bind(this));
@@ -153,12 +162,28 @@ class HollyJsonApp {
     }
 
     /**
-     * File loading (matching HollyJson behavior)
+     * File loading (enhanced for cross-platform compatibility)
      */
     handleDragOver(e) {
         e.preventDefault();
         e.stopPropagation();
+        // Ensure we're allowing the drop
+        e.dataTransfer.dropEffect = 'copy';
+    }
+
+    handleDragEnter(e) {
+        e.preventDefault();
+        e.stopPropagation();
         e.currentTarget.classList.add('dragover');
+    }
+
+    handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Only remove dragover if we're leaving the drop zone entirely
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+            e.currentTarget.classList.remove('dragover');
+        }
     }
 
     handleFileDrop(e) {
@@ -177,12 +202,32 @@ class HollyJsonApp {
         if (file) {
             this.loadSaveFile(file);
         }
+        // Reset the input so the same file can be selected again
+        e.target.value = '';
     }
 
     async loadSaveFile(file) {
         try {
+            // Validate file type and size
+            const fileName = file.name.toLowerCase();
+            if (!fileName.endsWith('.json') && !fileName.endsWith('.txt')) {
+                this.showMessage('Please select a .json or .txt save file', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                this.showMessage('File is too large. Save files should be under 10MB.', 'error');
+                return;
+            }
+
+            this.showMessage('Loading save file...', 'info');
+
             const text = await file.text();
-            const saveData = JSON.parse(text);
+
+            // Handle BOM (Byte Order Mark) that might cause issues on Windows
+            const cleanText = text.replace(/^\uFEFF/, '');
+
+            const saveData = JSON.parse(cleanText);
 
             const validation = this.formatManager.validateSave(saveData);
 
@@ -207,7 +252,16 @@ class HollyJsonApp {
             this.showMessage(`Save loaded successfully! Found ${this.allCharacters.length} characters.`, 'success');
 
         } catch (error) {
-            this.showMessage('Failed to parse save file: ' + error.message, 'error');
+            console.error('Error loading save file:', error);
+
+            let errorMessage = 'Failed to load save file';
+            if (error.name === 'SyntaxError') {
+                errorMessage = 'Invalid JSON file. Please make sure this is a valid Hollywood Animal save file.';
+            } else if (error.message) {
+                errorMessage += ': ' + error.message;
+            }
+
+            this.showMessage(errorMessage, 'error');
         }
     }
 
@@ -983,6 +1037,42 @@ class HollyJsonApp {
     showEditor() {
         document.getElementById('loadSection').style.display = 'none';
         document.getElementById('editorSection').style.display = 'flex';
+    }
+
+    /**
+     * Open the save folder (platform-specific)
+     */
+    openSaveFolder() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        let savePath = '';
+        let instructions = '';
+
+        if (userAgent.includes('win')) {
+            // Windows
+            savePath = '%USERPROFILE%\\AppData\\LocalLow\\Weappy\\Hollywood Animal\\Saves\\Profiles\\0';
+            instructions = `Windows: Open File Explorer and paste this path in the address bar:\n\n${savePath}\n\nOr press Win+R, type the path, and press Enter.`;
+        } else if (userAgent.includes('mac')) {
+            // macOS
+            savePath = '~/Library/Application Support/Weappy/Hollywood Animal/Saves/Profiles/0';
+            instructions = `macOS: Open Finder, press Cmd+Shift+G, and paste this path:\n\n${savePath}`;
+        } else {
+            // Linux
+            savePath = '~/.config/unity3d/Weappy/Hollywood Animal/Saves/Profiles/0';
+            instructions = `Linux: Open your file manager and navigate to:\n\n${savePath}`;
+        }
+
+        // Try to copy path to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(savePath.replace(/\\\\/g, '\\'))
+                .then(() => {
+                    alert(`${instructions}\n\nPath copied to clipboard!`);
+                })
+                .catch(() => {
+                    alert(instructions);
+                });
+        } else {
+            alert(instructions);
+        }
     }
 
     showMessage(text, type = 'info', duration = 3000) {

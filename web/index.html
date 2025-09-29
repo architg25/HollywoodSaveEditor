@@ -16,9 +16,24 @@
                         <div class="upload-icon">📁</div>
                         <h2>Load Your Save File</h2>
                         <p>Drag & drop your Hollywood Animal save file here</p>
-                        <p class="or-text">or</p>
-                        <button class="btn btn-secondary" id="filePickerBtn">Choose File</button>
-                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                        <div class="save-location-hint">
+                            <details>
+                                <summary>📂 Default save locations</summary>
+                                <div class="location-info">
+                                    <p><strong>Windows:</strong><br>
+                                    <code>%USERPROFILE%\AppData\LocalLow\Weappy\Hollywood Animal\Saves\Profiles\0</code></p>
+                                    <p><strong>macOS:</strong><br>
+                                    <code>~/Library/Application Support/Weappy/Hollywood Animal/Saves/Profiles/0</code></p>
+                                    <p><strong>Linux:</strong><br>
+                                    <code>~/.config/unity3d/Weappy/Hollywood Animal/Saves/Profiles/0</code></p>
+                                </div>
+                            </details>
+                        </div>
+                        <div class="file-actions">
+                            <button class="btn btn-secondary" id="filePickerBtn">Choose File</button>
+                            <button class="btn btn-ghost" id="openSaveFolderBtn" title="Open default save folder">📂 Open Save Folder</button>
+                        </div>
+                        <input type="file" id="fileInput" accept=".json,.txt" style="display: none;">
                     </div>
                 </div>
             </div>

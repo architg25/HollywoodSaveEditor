@@ -59,6 +59,13 @@ body {
 .drop-zone:hover, .drop-zone.dragover {
     border-color: var(--blue-light);
     background-color: var(--bg-secondary);
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+
+.drop-zone.dragover {
+    border-style: solid;
+    box-shadow: 0 4px 12px rgba(119, 166, 64, 0.3);
 }
 
 .upload-icon {
@@ -76,10 +83,72 @@ body {
     margin-bottom: 1rem;
 }
 
-.or-text {
-    margin: 2rem 0 1rem;
-    color: var(--text-muted);
+.save-location-hint {
+    margin: 1rem 0;
+    text-align: left;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.save-location-hint details {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+}
+
+.save-location-hint summary {
+    cursor: pointer;
     font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.save-location-hint summary:hover {
+    color: var(--text-primary);
+}
+
+.location-info {
+    margin-top: 8px;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.location-info p {
+    margin: 8px 0;
+}
+
+.location-info code {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    word-break: break-all;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+}
+
+@media (max-width: 480px) {
+    .file-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .file-actions .btn {
+        width: 200px;
+    }
 }
 
 /* Main Editor Layout (HollyJson Style) */
