@@ -64,15 +64,35 @@ class HollyJsonApp {
         const fileInput = document.getElementById('fileInput');
         const filePickerBtn = document.getElementById('filePickerBtn');
 
-        // Enhanced drag and drop for cross-platform compatibility
-        dropZone.addEventListener('dragover', this.handleDragOver.bind(this));
-        dropZone.addEventListener('dragenter', this.handleDragEnter.bind(this));
-        dropZone.addEventListener('dragleave', this.handleDragLeave.bind(this));
-        dropZone.addEventListener('drop', this.handleFileDrop.bind(this));
-        dropZone.addEventListener('click', () => fileInput.click());
+        // Simple drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
 
-        filePickerBtn.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.loadSaveFile(files[0]);
+            }
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        filePickerBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                this.loadSaveFile(file);
+            }
+        });
 
         // Open save folder button
         const openSaveFolderBtn = document.getElementById('openSaveFolderBtn');
@@ -162,77 +182,20 @@ class HollyJsonApp {
     }
 
     /**
-     * File loading (enhanced for cross-platform compatibility)
+     * File loading
      */
-    handleDragOver(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Ensure we're allowing the drop
-        e.dataTransfer.dropEffect = 'copy';
-    }
-
-    handleDragEnter(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.currentTarget.classList.add('dragover');
-    }
-
-    handleDragLeave(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Only remove dragover if we're leaving the drop zone entirely
-        if (!e.currentTarget.contains(e.relatedTarget)) {
-            e.currentTarget.classList.remove('dragover');
-        }
-    }
-
-    handleFileDrop(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.currentTarget.classList.remove('dragover');
-
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            this.loadSaveFile(files[0]);
-        }
-    }
-
-    handleFileSelect(e) {
-        const file = e.target.files[0];
-        if (file) {
-            this.loadSaveFile(file);
-        }
-        // Reset the input so the same file can be selected again
-        e.target.value = '';
-    }
 
     async loadSaveFile(file) {
         try {
-            // Validate file type and size
-            const fileName = file.name.toLowerCase();
-            if (!fileName.endsWith('.json') && !fileName.endsWith('.txt')) {
-                this.showMessage('Please select a .json or .txt save file', 'error');
-                return;
-            }
-
-            if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                this.showMessage('File is too large. Save files should be under 10MB.', 'error');
-                return;
-            }
-
-            this.showMessage('Loading save file...', 'info');
+            alert('File selected: ' + file.name); // Debug alert
 
             const text = await file.text();
-
-            // Handle BOM (Byte Order Mark) that might cause issues on Windows
-            const cleanText = text.replace(/^\uFEFF/, '');
-
-            const saveData = JSON.parse(cleanText);
+            const saveData = JSON.parse(text);
 
             const validation = this.formatManager.validateSave(saveData);
 
             if (!validation.isValid) {
-                this.showMessage('Failed to load save: ' + validation.error, 'error');
+                alert('Save validation failed: ' + validation.error);
                 return;
             }
 
@@ -249,19 +212,10 @@ class HollyJsonApp {
             this.showEditor();
             this.refreshCharacterList();
 
-            this.showMessage(`Save loaded successfully! Found ${this.allCharacters.length} characters.`, 'success');
+            alert(`Save loaded! Found ${this.allCharacters.length} characters.`);
 
         } catch (error) {
-            console.error('Error loading save file:', error);
-
-            let errorMessage = 'Failed to load save file';
-            if (error.name === 'SyntaxError') {
-                errorMessage = 'Invalid JSON file. Please make sure this is a valid Hollywood Animal save file.';
-            } else if (error.message) {
-                errorMessage += ': ' + error.message;
-            }
-
-            this.showMessage(errorMessage, 'error');
+            alert('Error: ' + error.message);
         }
     }
 

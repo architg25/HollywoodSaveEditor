@@ -33,7 +33,10 @@
                             <button class="btn btn-secondary" id="filePickerBtn">Choose File</button>
                             <button class="btn btn-ghost" id="openSaveFolderBtn" title="Open default save folder">📂 Open Save Folder</button>
                         </div>
-                        <input type="file" id="fileInput" accept=".json,.txt" style="display: none;">
+                        <div style="margin-top: 1rem;">
+                            <label for="fileInput" style="display: block; margin-bottom: 4px; font-size: 11px;">Or select file directly:</label>
+                            <input type="file" id="fileInput" accept=".json,.txt" style="width: 100%; max-width: 300px; margin: 0 auto; display: block;">
+                        </div>
                     </div>
                 </div>
             </div>
