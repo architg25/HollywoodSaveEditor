@@ -1,20 +1,14 @@
 {
   "version": 2,
   "public": true,
-  "builds": [
+  "rewrites": [
     {
-      "src": "web/**",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/web/$1"
+      "source": "/",
+      "destination": "/web/index.html"
     },
     {
-      "src": "/",
-      "dest": "/web/index.html"
+      "source": "/((?!web/).*)",
+      "destination": "/web/$1"
     }
   ],
   "headers": [
