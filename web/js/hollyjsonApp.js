@@ -158,28 +158,14 @@ class HollyJsonApp {
     }
 
     setupMacroListeners() {
-        // Macros popup toggle
-        document.getElementById('macrosBtn').addEventListener('click', this.toggleMacrosPopup.bind(this));
-
-        // Bulk macro operations
+        // Bulk operations
         document.getElementById('maxMoodAttBtn').addEventListener('click', () => this.bulkSetMaxMoodAtt());
         document.getElementById('maxDaysBtn').addEventListener('click', () => this.bulkSetMaxDays());
         document.getElementById('maxSkillBtn').addEventListener('click', () => this.bulkSetMaxSkill());
         document.getElementById('maxLimitBtn').addEventListener('click', () => this.bulkSetMaxLimit());
 
-        // Age setting
-        document.getElementById('setYoungBtn').addEventListener('click', () => this.bulkSetAge('Y'));
-        document.getElementById('setMidBtn').addEventListener('click', () => this.bulkSetAge('M'));
-        document.getElementById('setOldBtn').addEventListener('click', () => this.bulkSetAge('O'));
-
-        // Close popup when clicking outside
-        document.addEventListener('click', (e) => {
-            const popup = document.getElementById('macrosPopup');
-            const btn = document.getElementById('macrosBtn');
-            if (!popup.contains(e.target) && !btn.contains(e.target)) {
-                popup.style.display = 'none';
-            }
-        });
+        // New age input system
+        document.getElementById('setBulkAgeBtn').addEventListener('click', () => this.bulkSetAgeFromInput());
     }
 
     /**
@@ -221,6 +207,9 @@ class HollyJsonApp {
             this.populateStudioLists();
             this.populateProfessionList();
 
+            // Initialize filters and show all characters initially
+            this.filteredCharacters = [...this.allCharacters];
+
             // Show editor
             this.showEditor();
             this.refreshCharacterList();
@@ -247,6 +236,7 @@ class HollyJsonApp {
             deathDate: char.deathDate,
             gender: char.gender,
             studioId: char.studioId || 'NONE',
+            portraitBaseId: char.portraitBaseId,
 
             // Character state (newSave format uses string values)
             mood: parseFloat(char.mood || 0),
@@ -495,6 +485,9 @@ class HollyJsonApp {
 
         const char = this.selectedCharacter;
 
+        // Character portrait
+        this.updateCharacterPortrait(char);
+
         // Character info
         document.getElementById('charName').value = this.getCharacterDisplayName(char);
         document.getElementById('charStudio').value = char.studioId || '';
@@ -543,6 +536,39 @@ class HollyJsonApp {
         document.getElementById('contractMonthlySalary').value = '';
         document.getElementById('contractWeeklySalary').value = '';
         document.getElementById('characterTraits').innerHTML = '';
+        document.getElementById('charPortrait').textContent = '👤';
+    }
+
+    updateCharacterPortrait(char) {
+        const portraitElement = document.getElementById('charPortrait');
+
+        // Since we don't have access to the actual portrait files,
+        // we'll create a fallback display using character data
+
+        if (char.portraitBaseId) {
+            // Generate a consistent emoji based on portraitBaseId
+            const portraitEmojis = ['👨', '👩', '🧑', '👦', '👧', '🧒', '👴', '👵', '🧓', '👱‍♂️', '👱‍♀️', '👲', '🧔', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳', '👨‍🦲', '👩‍🦲'];
+            const emojiIndex = char.portraitBaseId % portraitEmojis.length;
+            let emoji = portraitEmojis[emojiIndex];
+
+            // Modify based on gender
+            if (char.gender === 1) { // Female
+                if (emoji.includes('👨')) emoji = emoji.replace('👨', '👩');
+                else if (emoji === '👦') emoji = '👧';
+                else if (emoji === '👴') emoji = '👵';
+            } else { // Male
+                if (emoji.includes('👩')) emoji = emoji.replace('👩', '👨');
+                else if (emoji === '👧') emoji = '👦';
+                else if (emoji === '👵') emoji = '👴';
+            }
+
+            portraitElement.textContent = emoji;
+            portraitElement.title = `Portrait ID: ${char.portraitBaseId}`;
+        } else {
+            // Fallback to generic based on gender
+            portraitElement.textContent = char.gender === 1 ? '👩' : '👨';
+            portraitElement.title = 'No portrait ID';
+        }
     }
 
     populateCharacterTraits() {
@@ -687,12 +713,8 @@ class HollyJsonApp {
     }
 
     /**
-     * Bulk operations (HollyJson Macros)
+     * Bulk operations
      */
-    toggleMacrosPopup() {
-        const popup = document.getElementById('macrosPopup');
-        popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
-    }
 
     bulkSetMaxMoodAtt() {
         this.filteredCharacters.forEach(char => {
@@ -750,13 +772,13 @@ class HollyJsonApp {
         this.showMessage(`Set max limit for ${this.filteredCharacters.length} characters`, 'success');
     }
 
-    bulkSetAge(ageGroup) {
-        let targetAge;
-        switch (ageGroup) {
-            case 'Y': targetAge = 25; break; // Young
-            case 'M': targetAge = 45; break; // Mid
-            case 'O': targetAge = 65; break; // Old
-            default: return;
+    bulkSetAgeFromInput() {
+        const ageInput = document.getElementById('bulkAgeInput');
+        const targetAge = parseInt(ageInput.value);
+
+        if (!targetAge || targetAge < 18 || targetAge > 99) {
+            alert('Please enter a valid age between 18 and 99');
+            return;
         }
 
         const gameYear = this.formatManager.extractGameYear(this.saveData) || 1929;
@@ -774,7 +796,7 @@ class HollyJsonApp {
 
         this.refreshCharacterList();
         this.populateCharacterDetails();
-        this.showMessage(`Set age to ${ageGroup === 'Y' ? 'Young' : ageGroup === 'M' ? 'Mid' : 'Old'} for ${this.filteredCharacters.length} characters`, 'success');
+        alert(`Set age to ${targetAge} for ${this.filteredCharacters.length} characters`);
     }
 
     /**
