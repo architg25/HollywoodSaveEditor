@@ -121,7 +121,6 @@ class HollyJsonApp {
         document.getElementById('professionFilter').addEventListener('change', this.updateFilters.bind(this));
         document.getElementById('showOnlyDead').addEventListener('change', this.updateFilters.bind(this));
         document.getElementById('showOnlyTalent').addEventListener('change', this.updateFilters.bind(this));
-        document.getElementById('showClosedTechs').addEventListener('change', this.updateFilters.bind(this));
 
         // Character table selection
         document.getElementById('characterTable').addEventListener('click', this.handleCharacterSelection.bind(this));
@@ -401,7 +400,6 @@ class HollyJsonApp {
         this.filters.profession = document.getElementById('professionFilter').value;
         this.filters.showOnlyDead = document.getElementById('showOnlyDead').checked;
         this.filters.showOnlyTalent = document.getElementById('showOnlyTalent').checked;
-        this.filters.showClosedTechs = document.getElementById('showClosedTechs').checked;
 
         this.applyFilters();
         this.refreshCharacterList();
@@ -437,10 +435,6 @@ class HollyJsonApp {
                 return false;
             }
 
-            // Closed techs/tags filter - show only characters with blocked skills/tags
-            if (this.filters.showClosedTechs && (!char.blackTags || char.blackTags.length === 0)) {
-                return false;
-            }
 
             return true;
         });
@@ -852,24 +846,40 @@ class HollyJsonApp {
     }
 
     bulkSetContractForSkills() {
-        // From HollyJson: Set contract days high enough to unlock all skills
-        const daysForAllSkills = 365 * 10; // 10 years should be enough for all skills
+        // Actually add all available skills to characters
+        const currentDate = new Date().toISOString();
 
         this.filteredCharacters.forEach(char => {
-            // Ensure contract exists (can be null in newSave)
-            if (!char.contract) {
-                char.contract = {};
+            // Ensure whiteTagsNEW exists
+            if (!char.whiteTagsNEW) {
+                char.whiteTagsNEW = {};
             }
-            if (!char._original.contract) {
-                char._original.contract = {};
+            if (!char._original.whiteTagsNEW) {
+                char._original.whiteTagsNEW = {};
             }
-            char.contract.DaysLeft = daysForAllSkills;
-            char._original.contract.DaysLeft = daysForAllSkills;
+
+            // Add all available skills
+            this.availableSkills.forEach(skill => {
+                if (!char.whiteTagsNEW[skill]) {
+                    // Create skill object matching the game's format
+                    const skillData = {
+                        overallValues: [],
+                        id: skill,
+                        dateAdded: currentDate,
+                        movieId: 0,
+                        value: '1.000', // Max skill value
+                        IsOverall: false
+                    };
+
+                    char.whiteTagsNEW[skill] = skillData;
+                    char._original.whiteTagsNEW[skill] = skillData;
+                }
+            });
         });
 
         this.refreshCharacterList();
         this.populateCharacterDetails();
-        this.showMessage(`Set contract days to get all skills for ${this.filteredCharacters.length} characters`, 'success');
+        this.showMessage(`Added all available skills to ${this.filteredCharacters.length} characters`, 'success');
     }
 
     bulkSetMaxSkill() {
@@ -1030,11 +1040,21 @@ class HollyJsonApp {
 
         if (!skill || this.selectedCharacter.whiteTagsNEW.hasOwnProperty(skill)) return;
 
-        this.selectedCharacter.whiteTagsNEW[skill] = true;
+        // Create skill object matching the game's format
+        const skillData = {
+            overallValues: [],
+            id: skill,
+            dateAdded: new Date().toISOString(),
+            movieId: 0,
+            value: '1.000', // Max skill value
+            IsOverall: false
+        };
+
+        this.selectedCharacter.whiteTagsNEW[skill] = skillData;
         if (!this.selectedCharacter._original.whiteTagsNEW) {
             this.selectedCharacter._original.whiteTagsNEW = {};
         }
-        this.selectedCharacter._original.whiteTagsNEW[skill] = true;
+        this.selectedCharacter._original.whiteTagsNEW[skill] = skillData;
 
         this.populateCharacterSkills();
         skillSelect.value = '';

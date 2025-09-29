@@ -269,8 +269,10 @@ body {
 
 .checkbox-row {
     display: flex;
-    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-bottom: 5px;
+    justify-content: flex-start;
 }
 
 .checkbox-label {
@@ -279,6 +281,7 @@ body {
     gap: 3px;
     font-size: 11px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 /* Character List */
