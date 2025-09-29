@@ -52,6 +52,16 @@ class HollyJsonApp {
             "INDOOR", "OUTDOOR"
         ];
 
+        // Studio mappings for cinema management
+        this.studioMappings = {
+            'PL': 'Player Studio',
+            'EM': 'Evergreen Movies',
+            'GB': 'Gerstein Bros.',
+            'MA': 'Marginese',
+            'SU': 'Supreme',
+            'HE': 'Hephaestus'
+        };
+
         this.init();
     }
 
@@ -178,6 +188,17 @@ class HollyJsonApp {
 
         // New age input system
         document.getElementById('setBulkAgeBtn').addEventListener('click', () => this.bulkSetAgeFromInput());
+
+        // Tab system
+        document.getElementById('charactersTabBtn').addEventListener('click', () => this.switchTab('characters'));
+        document.getElementById('miscTabBtn').addEventListener('click', () => this.switchTab('misc'));
+
+        // Cinema management
+        document.getElementById('applyCinemaChanges').addEventListener('click', () => this.applyCinemaChanges());
+        document.getElementById('maxPlayerOwnership').addEventListener('click', () => this.maxPlayerOwnership());
+        document.getElementById('distributeEvenly').addEventListener('click', () => this.distributeEvenly());
+        document.getElementById('editTotalSlots').addEventListener('input', () => this.updateCinemaCalculations());
+        document.getElementById('editIndependentSlots').addEventListener('input', () => this.updateCinemaCalculations());
     }
 
     /**
@@ -226,6 +247,7 @@ class HollyJsonApp {
             // Show editor
             this.showEditor();
             this.refreshCharacterList();
+            this.loadCinemaData();
 
             alert(`Save loaded! Found ${this.allCharacters.length} characters.`);
 
@@ -1253,6 +1275,306 @@ class HollyJsonApp {
         document.getElementById('editorSection').style.display = 'flex';
     }
 
+    /**
+     * Tab System Methods
+     */
+    switchTab(tabName) {
+        // Hide all tabs completely
+        document.getElementById('charactersTab').classList.remove('active');
+        document.getElementById('charactersTab').style.display = 'none';
+        document.getElementById('miscTab').style.display = 'none';
+
+        // Remove active class from all buttons
+        document.getElementById('charactersTabBtn').classList.remove('active');
+        document.getElementById('miscTabBtn').classList.remove('active');
+
+        // Show selected tab
+        if (tabName === 'characters') {
+            document.getElementById('charactersTab').style.display = 'flex';
+            document.getElementById('charactersTab').classList.add('active');
+            document.getElementById('charactersTabBtn').classList.add('active');
+        } else if (tabName === 'misc') {
+            document.getElementById('miscTab').style.display = 'block';
+            document.getElementById('miscTabBtn').classList.add('active');
+        }
+    }
+
+    /**
+     * Cinema Management Methods
+     */
+    loadCinemaData() {
+        if (!this.saveData || !this.saveData.stateJson || !this.saveData.stateJson.movies) {
+            return;
+        }
+
+        // Find all movies with release data to gather studio distribution
+        const movies = this.saveData.stateJson.movies;
+        const studioSlots = {};
+        let totalSlots = 0;
+        let independentSlots = 0;
+        let latestMovie = null;
+
+        // Initialize all studios with 0 slots
+        Object.keys(this.studioMappings).forEach(studioId => {
+            studioSlots[studioId] = 0;
+        });
+
+        // Aggregate slots from all movies to get current distribution
+        for (const movie of movies) {
+            if (movie.stageResults && movie.stageResults.Release) {
+                const releaseData = movie.stageResults.Release;
+                const studioId = movie.studioId || 'PL'; // Default to player if no studioId
+
+                if (releaseData.ourSlotsLastWeekCurrScreening && releaseData.otherSlotsLastWeekCurrScreening) {
+                    const movieStudioSlots = parseInt(releaseData.ourSlotsLastWeekCurrScreening) || 0;
+                    const movieIndependentSlots = parseInt(releaseData.otherSlotsLastWeekCurrScreening) || 0;
+
+                    // Accumulate slots per studio (using the latest distribution for each studio)
+                    studioSlots[studioId] = Math.max(studioSlots[studioId], movieStudioSlots);
+                    independentSlots = Math.max(independentSlots, movieIndependentSlots);
+
+                    if (!latestMovie || (movie.developmentEndDate || movie.id || 0) > (latestMovie.developmentEndDate || latestMovie.id || 0)) {
+                        latestMovie = movie;
+                    }
+                }
+            }
+        }
+
+        // Calculate total slots
+        totalSlots = independentSlots + Object.values(studioSlots).reduce((sum, slots) => sum + slots, 0);
+
+        this.currentCinemaData = {
+            studioSlots,
+            independentSlots,
+            totalSlots,
+            sourceMovie: latestMovie
+        };
+
+        this.updateCinemaDisplay();
+        this.loadCinemaHistory();
+    }
+
+    updateCinemaDisplay() {
+        if (!this.currentCinemaData) return;
+
+        const { studioSlots, independentSlots, totalSlots } = this.currentCinemaData;
+
+        // Update overview header
+        document.getElementById('totalCinemaSlots').textContent = totalSlots.toLocaleString();
+        document.getElementById('independentSlots').textContent = independentSlots.toLocaleString();
+
+        const independentPercentage = totalSlots > 0 ? ((independentSlots / totalSlots) * 100).toFixed(1) : '0.0';
+        document.getElementById('independentPercentage').textContent = `(${independentPercentage}%)`;
+
+        // Update studios grid
+        const studiosGrid = document.getElementById('studiosGrid');
+        studiosGrid.innerHTML = '';
+
+        Object.keys(this.studioMappings).forEach(studioId => {
+            const slots = studioSlots[studioId] || 0;
+            const percentage = totalSlots > 0 ? ((slots / totalSlots) * 100).toFixed(1) : '0.0';
+
+            const studioItem = document.createElement('div');
+            studioItem.className = 'studio-item';
+
+            studioItem.innerHTML = `
+                <div class="studio-name">${this.studioMappings[studioId]}</div>
+                <div class="studio-slots">${slots.toLocaleString()}</div>
+                <div class="studio-percentage">(${percentage}%)</div>
+            `;
+
+            studiosGrid.appendChild(studioItem);
+        });
+
+        // Update edit fields
+        document.getElementById('editTotalSlots').value = totalSlots;
+        document.getElementById('editIndependentSlots').value = independentSlots;
+
+        // Populate studio editing grid
+        this.populateStudioEditingGrid();
+    }
+
+    populateStudioEditingGrid() {
+        const studioEditingGrid = document.getElementById('studioEditingGrid');
+        studioEditingGrid.innerHTML = '';
+
+        Object.keys(this.studioMappings).forEach(studioId => {
+            const slots = this.currentCinemaData.studioSlots[studioId] || 0;
+
+            const studioEditField = document.createElement('div');
+            studioEditField.className = 'studio-edit-field';
+
+            studioEditField.innerHTML = `
+                <label for="edit-${studioId}">${this.studioMappings[studioId]}:</label>
+                <input type="number" id="edit-${studioId}" class="cinema-input" min="0" value="${slots}">
+            `;
+
+            studioEditingGrid.appendChild(studioEditField);
+
+            // Add event listener for real-time calculation
+            const input = studioEditField.querySelector(`#edit-${studioId}`);
+            input.addEventListener('input', () => this.updateCinemaCalculations());
+        });
+    }
+
+    updateCinemaCalculations() {
+        const totalSlots = parseInt(document.getElementById('editTotalSlots').value) || 0;
+        const independentSlots = parseInt(document.getElementById('editIndependentSlots').value) || 0;
+
+        // Calculate used studio slots
+        let usedStudioSlots = 0;
+        Object.keys(this.studioMappings).forEach(studioId => {
+            const studioInput = document.getElementById(`edit-${studioId}`);
+            if (studioInput) {
+                usedStudioSlots += parseInt(studioInput.value) || 0;
+            }
+        });
+
+        // Auto-adjust if total doesn't match
+        const calculatedTotal = usedStudioSlots + independentSlots;
+        if (calculatedTotal !== totalSlots) {
+            document.getElementById('editTotalSlots').value = calculatedTotal;
+        }
+    }
+
+    applyCinemaChanges() {
+        if (!this.currentCinemaData) {
+            this.showMessage('No cinema data to modify', 'error');
+            return;
+        }
+
+        // Get new values from inputs
+        const newIndependentSlots = parseInt(document.getElementById('editIndependentSlots').value) || 0;
+        const newStudioSlots = {};
+
+        Object.keys(this.studioMappings).forEach(studioId => {
+            const studioInput = document.getElementById(`edit-${studioId}`);
+            newStudioSlots[studioId] = studioInput ? (parseInt(studioInput.value) || 0) : 0;
+        });
+
+        // Update all movies to maintain consistency
+        let updatedCount = 0;
+        this.saveData.stateJson.movies.forEach(movie => {
+            if (movie.stageResults && movie.stageResults.Release) {
+                const releaseData = movie.stageResults.Release;
+                const movieStudioId = movie.studioId || 'PL';
+
+                if (releaseData.ourSlotsLastWeekCurrScreening !== undefined) {
+                    // Update slots for this movie's studio
+                    releaseData.ourSlotsLastWeekCurrScreening = newStudioSlots[movieStudioId].toString();
+                    releaseData.otherSlotsLastWeekCurrScreening = newIndependentSlots.toString();
+
+                    // Update history entries if they exist
+                    if (releaseData.releaseSlotsHistory && releaseData.releaseSlotsHistory.length > 0) {
+                        const latestHistory = releaseData.releaseSlotsHistory[releaseData.releaseSlotsHistory.length - 1];
+                        latestHistory.Item1 = newStudioSlots[movieStudioId].toString();
+                        latestHistory.Item2 = newIndependentSlots.toString();
+                    }
+
+                    updatedCount++;
+                }
+            }
+        });
+
+        // Update current data
+        this.currentCinemaData.studioSlots = newStudioSlots;
+        this.currentCinemaData.independentSlots = newIndependentSlots;
+        this.currentCinemaData.totalSlots = newIndependentSlots + Object.values(newStudioSlots).reduce((sum, slots) => sum + slots, 0);
+
+        this.updateCinemaDisplay();
+        this.showMessage(`Updated cinema distribution across ${updatedCount} movies`, 'success');
+    }
+
+    maxPlayerOwnership() {
+        if (!this.currentCinemaData) {
+            this.showMessage('No cinema data loaded', 'error');
+            return;
+        }
+
+        const totalSlots = this.currentCinemaData.totalSlots;
+
+        // Set player to own all slots
+        document.getElementById('edit-PL').value = totalSlots;
+
+        // Set all other studios to 0
+        Object.keys(this.studioMappings).forEach(studioId => {
+            if (studioId !== 'PL') {
+                const input = document.getElementById(`edit-${studioId}`);
+                if (input) input.value = 0;
+            }
+        });
+
+        // Set independent to 0
+        document.getElementById('editIndependentSlots').value = 0;
+
+        this.updateCinemaCalculations();
+        this.showMessage(`Set Player Studio to own all ${totalSlots.toLocaleString()} cinema slots`, 'info');
+    }
+
+    distributeEvenly() {
+        if (!this.currentCinemaData) {
+            this.showMessage('No cinema data loaded', 'error');
+            return;
+        }
+
+        const totalSlots = this.currentCinemaData.totalSlots;
+        const studioCount = Object.keys(this.studioMappings).length;
+        const slotsPerStudio = Math.floor(totalSlots / (studioCount + 1)); // +1 for independent
+        const remainder = totalSlots % (studioCount + 1);
+
+        // Distribute evenly among all studios
+        Object.keys(this.studioMappings).forEach(studioId => {
+            const input = document.getElementById(`edit-${studioId}`);
+            if (input) input.value = slotsPerStudio;
+        });
+
+        // Give remainder to independent cinemas
+        document.getElementById('editIndependentSlots').value = slotsPerStudio + remainder;
+
+        this.updateCinemaCalculations();
+        this.showMessage(`Distributed ${totalSlots.toLocaleString()} slots evenly among all studios and independents`, 'info');
+    }
+
+    loadCinemaHistory() {
+        const historyList = document.getElementById('cinemaHistoryList');
+        historyList.innerHTML = '';
+
+        if (!this.saveData.stateJson.movies) return;
+
+        // Get movies with release data, sorted by development date
+        const moviesWithCinemas = this.saveData.stateJson.movies
+            .filter(movie => movie.stageResults && movie.stageResults.Release &&
+                           movie.stageResults.Release.ourSlotsLastWeekCurrScreening)
+            .sort((a, b) => (b.developmentEndDate || b.id || 0) - (a.developmentEndDate || a.id || 0))
+            .slice(0, 10); // Show last 10 movies
+
+        moviesWithCinemas.forEach(movie => {
+            const releaseData = movie.stageResults.Release;
+            const studioSlots = parseInt(releaseData.ourSlotsLastWeekCurrScreening) || 0;
+            const independentSlots = parseInt(releaseData.otherSlotsLastWeekCurrScreening) || 0;
+            const totalSlots = studioSlots + independentSlots;
+
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+
+            const movieName = document.createElement('span');
+            movieName.className = 'movie-name';
+            movieName.textContent = movie.movieDetails?.title || `Movie ${movie.id}`;
+
+            const cinemaData = document.createElement('span');
+            cinemaData.className = 'cinema-data';
+            const studioPercentage = totalSlots > 0 ? ((studioSlots / totalSlots) * 100).toFixed(1) : '0.0';
+            cinemaData.textContent = `${studioSlots.toLocaleString()}/${totalSlots.toLocaleString()} (${studioPercentage}%)`;
+
+            historyItem.appendChild(movieName);
+            historyItem.appendChild(cinemaData);
+            historyList.appendChild(historyItem);
+        });
+
+        if (moviesWithCinemas.length === 0) {
+            historyList.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 10px;">No cinema distribution history found</div>';
+        }
+    }
 
     showMessage(text, type = 'info', duration = 3000) {
         const messagesContainer = document.getElementById('statusMessages');

@@ -65,8 +65,18 @@
                 </div>
             </div>
 
-            <!-- Two-Panel Layout (HollyJson style) -->
-            <div class="main-panels">
+            <!-- Tab System -->
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button id="charactersTabBtn" class="tab-btn active">Characters</button>
+                    <button id="miscTabBtn" class="tab-btn">MISC</button>
+                </div>
+            </div>
+
+            <!-- Characters Tab Content -->
+            <div id="charactersTab" class="tab-content active">
+                <!-- Two-Panel Layout (HollyJson style) -->
+                <div class="main-panels">
                 <!-- Left Panel: Character List -->
                 <div class="left-panel">
                     <!-- Filters -->
@@ -252,6 +262,68 @@
                     </div>
                 </div>
             </div>
+            </div>
+            <!-- End Characters Tab -->
+
+            <!-- MISC Tab Content -->
+            <div id="miscTab" class="tab-content" style="display: none;">
+                <div class="misc-panels">
+                    <!-- Cinema Management Section -->
+                    <div class="cinema-section">
+                        <h3>Cinema Management</h3>
+
+                        <!-- Cinema Overview -->
+                        <div class="cinema-overview">
+                            <div class="cinema-stats-header">
+                                <div class="stat-item">
+                                    <label>Total Cinema Slots:</label>
+                                    <span id="totalCinemaSlots">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <label>Independent:</label>
+                                    <span id="independentSlots">-</span>
+                                    <span class="percentage" id="independentPercentage">(-)</span>
+                                </div>
+                            </div>
+                            <div class="studios-grid" id="studiosGrid">
+                                <!-- Studio ownership will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Cinema Editing -->
+                        <div class="cinema-editing">
+                            <h4>Edit Cinema Distribution</h4>
+                            <div class="cinema-controls">
+                                <div class="cinema-field">
+                                    <label for="editTotalSlots">Total Cinema Slots:</label>
+                                    <input type="number" id="editTotalSlots" class="cinema-input" min="0">
+                                </div>
+                                <div class="cinema-field">
+                                    <label for="editIndependentSlots">Independent Slots:</label>
+                                    <input type="number" id="editIndependentSlots" class="cinema-input" min="0">
+                                </div>
+                            </div>
+                            <div class="studio-editing-grid" id="studioEditingGrid">
+                                <!-- Studio editing inputs will be populated here -->
+                            </div>
+                            <div class="cinema-actions">
+                                <button id="applyCinemaChanges" class="btn btn-primary">Apply Changes</button>
+                                <button id="maxPlayerOwnership" class="btn btn-secondary">Max Player Ownership</button>
+                                <button id="distributeEvenly" class="btn btn-secondary">Distribute Evenly</button>
+                            </div>
+                        </div>
+
+                        <!-- Cinema History -->
+                        <div class="cinema-history">
+                            <h4>Cinema Distribution History</h4>
+                            <div class="history-list" id="cinemaHistoryList">
+                                <!-- History entries will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End MISC Tab -->
         </section>
 
         <!-- Status Messages -->
