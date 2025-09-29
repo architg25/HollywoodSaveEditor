@@ -27,10 +27,10 @@
 ### Configuration
 
 The included `vercel.json` handles:
-- ✅ Static file serving from `/web` folder
+- ✅ Static file serving from `/web` folder as output directory
 - ✅ Proper MIME types for JS/CSS files
-- ✅ Root path routing to index.html
-- ✅ Zero-config deployment
+- ✅ No-build deployment (pure static files)
+- ✅ Custom build and install commands
 
 ### Custom Domain (Optional)
 

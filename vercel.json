@@ -1,19 +1,11 @@
 {
-  "version": 2,
-  "public": true,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/web/index.html"
-    },
-    {
-      "source": "/((?!web/).*)",
-      "destination": "/web/$1"
-    }
-  ],
+  "buildCommand": "echo 'No build required - static site'",
+  "outputDirectory": "web",
+  "devCommand": "python -m http.server 8000 --directory web",
+  "installCommand": "echo 'No install required'",
   "headers": [
     {
-      "source": "/web/js/(.*)",
+      "source": "/js/(.*)",
       "headers": [
         {
           "key": "Content-Type",
@@ -22,7 +14,7 @@
       ]
     },
     {
-      "source": "/web/css/(.*)",
+      "source": "/css/(.*)",
       "headers": [
         {
           "key": "Content-Type",

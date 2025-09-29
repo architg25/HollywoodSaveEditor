@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "python -m http.server 8000 --directory web",
     "start": "python -m http.server 8000 --directory web",
-    "build": "echo 'Static site - no build required'"
+    "build": "echo 'Static site - no build required'",
+    "vercel-build": "echo 'No build needed - serving web directory directly'"
   },
   "keywords": [
     "hollywood-animal",
