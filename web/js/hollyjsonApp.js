@@ -646,13 +646,32 @@ class HollyJsonApp {
         const skillsContainer = document.getElementById('characterSkills');
         skillsContainer.innerHTML = '';
 
-        if (!this.selectedCharacter || !this.selectedCharacter.whiteTagsNEW) return;
+        if (!this.selectedCharacter) return;
 
-        Object.keys(this.selectedCharacter.whiteTagsNEW).forEach(skill => {
+        // Check for skills in whiteTagsNEW (newSave format)
+        const skills = this.selectedCharacter.whiteTagsNEW || {};
+
+        if (Object.keys(skills).length === 0) {
+            const noSkillsMsg = document.createElement('div');
+            noSkillsMsg.className = 'skill-item';
+            noSkillsMsg.innerHTML = '<span style="color: #888; font-style: italic;">No skills learned yet</span>';
+            skillsContainer.appendChild(noSkillsMsg);
+            return;
+        }
+
+        Object.keys(skills).forEach(skill => {
             const skillItem = document.createElement('div');
             skillItem.className = 'skill-item';
+            const skillValue = skills[skill];
+
+            // Show skill name and value if available
+            let displayText = skill.replace(/_/g, ' ');
+            if (skillValue && typeof skillValue === 'object' && skillValue.value) {
+                displayText += ` (${parseFloat(skillValue.value).toFixed(2)})`;
+            }
+
             skillItem.innerHTML = `
-                <span>${skill.replace(/_/g, ' ')}</span>
+                <span>${displayText}</span>
                 <button onclick="window.hollyjsonApp.removeSkill('${skill}')">−</button>
             `;
             skillsContainer.appendChild(skillItem);
