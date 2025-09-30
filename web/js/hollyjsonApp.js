@@ -1492,12 +1492,13 @@ class HollyJsonApp {
     }
 
     applyCinemaChanges() {
-        if (!this.currentCinemaData) {
-            this.showMessage('No cinema data to modify', 'error');
+        if (!this.currentCinemaData || !this.currentCinemaData.available) {
+            this.showMessage('Cinema management not available for this save file', 'error');
             return;
         }
 
         // Get new values from inputs
+        const newTotalSlots = parseInt(document.getElementById('editTotalSlots').value) || 0;
         const newIndependentSlots = parseInt(document.getElementById('editIndependentSlots').value) || 0;
         const newStudioSlots = {};
 
@@ -1506,37 +1507,35 @@ class HollyJsonApp {
             newStudioSlots[studioId] = studioInput ? (parseInt(studioInput.value) || 0) : 0;
         });
 
-        // Update all movies to maintain consistency
-        let updatedCount = 0;
-        this.saveData.stateJson.movies.forEach(movie => {
-            if (movie.stageResults && movie.stageResults.Release) {
-                const releaseData = movie.stageResults.Release;
-                const movieStudioId = movie.studioId || 'PL';
+        // Calculate total owned slots
+        const totalOwnedSlots = Object.values(newStudioSlots).reduce((sum, slots) => sum + slots, 0);
+        const calculatedTotal = totalOwnedSlots + newIndependentSlots;
 
-                if (releaseData.ourSlotsLastWeekCurrScreening !== undefined) {
-                    // Update slots for this movie's studio
-                    releaseData.ourSlotsLastWeekCurrScreening = newStudioSlots[movieStudioId].toString();
-                    releaseData.otherSlotsLastWeekCurrScreening = newIndependentSlots.toString();
+        // Validate that the numbers make sense
+        if (calculatedTotal !== newTotalSlots) {
+            this.showMessage(`Total mismatch: ${totalOwnedSlots} owned + ${newIndependentSlots} independent = ${calculatedTotal}, but total set to ${newTotalSlots}`, 'error');
+            return;
+        }
 
-                    // Update history entries if they exist
-                    if (releaseData.releaseSlotsHistory && releaseData.releaseSlotsHistory.length > 0) {
-                        const latestHistory = releaseData.releaseSlotsHistory[releaseData.releaseSlotsHistory.length - 1];
-                        latestHistory.Item1 = newStudioSlots[movieStudioId].toString();
-                        latestHistory.Item2 = newIndependentSlots.toString();
-                    }
+        // Update the actual save data
+        this.saveData.stateJson.allCinemas = newTotalSlots;
 
-                    updatedCount++;
-                }
-            }
+        // Update ownedCinemas object
+        if (!this.saveData.stateJson.ownedCinemas) {
+            this.saveData.stateJson.ownedCinemas = {};
+        }
+
+        Object.keys(newStudioSlots).forEach(studioId => {
+            this.saveData.stateJson.ownedCinemas[studioId] = newStudioSlots[studioId];
         });
 
-        // Update current data
-        this.currentCinemaData.studioSlots = newStudioSlots;
+        // Update our local data and refresh display
+        this.currentCinemaData.totalSlots = newTotalSlots;
         this.currentCinemaData.independentSlots = newIndependentSlots;
-        this.currentCinemaData.totalSlots = newIndependentSlots + Object.values(newStudioSlots).reduce((sum, slots) => sum + slots, 0);
+        this.currentCinemaData.studioSlots = { ...newStudioSlots };
 
         this.updateCinemaDisplay();
-        this.showMessage(`Updated cinema distribution across ${updatedCount} movies`, 'success');
+        this.showMessage(`Updated cinema distribution: ${newTotalSlots} total cinemas (${totalOwnedSlots} owned, ${newIndependentSlots} independent)`, 'success');
     }
 
     maxPlayerOwnership() {
