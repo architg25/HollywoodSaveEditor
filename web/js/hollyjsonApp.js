@@ -989,14 +989,33 @@ class HollyJsonApp {
             return;
         }
 
-        this.filteredCharacters.forEach(char => {
-            char.monthlySalary = targetSalary;
-            char._original.monthlySalary = targetSalary;
+        // Only update characters with non-zero monthly salary
+        const eligibleCharacters = this.filteredCharacters.filter(char => {
+            const currentSalary = parseFloat(char.contract?.monthlySalary || 0);
+            return currentSalary > 0;
+        });
+
+        if (eligibleCharacters.length === 0) {
+            this.showMessage('No characters with existing monthly salary contracts found', 'warning');
+            return;
+        }
+
+        eligibleCharacters.forEach(char => {
+            // Ensure contract object exists
+            if (!char.contract) {
+                char.contract = {};
+            }
+            if (!char._original.contract) {
+                char._original.contract = {};
+            }
+
+            char.contract.monthlySalary = targetSalary;
+            char._original.contract.monthlySalary = targetSalary;
         });
 
         this.refreshCharacterList();
         this.populateCharacterDetails();
-        this.showMessage(`Set monthly salary to $${targetSalary.toLocaleString()} for ${this.filteredCharacters.length} characters`, 'success');
+        this.showMessage(`Set monthly salary to $${targetSalary.toLocaleString()} for ${eligibleCharacters.length} characters with existing contracts`, 'success');
     }
 
     /**
