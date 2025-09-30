@@ -70,6 +70,13 @@ class HollyJsonApp {
         this.loadNameMap();
         this.populateTraitSelector();
         this.populateSkillSelector();
+        this.setupPolicyEventListeners();
+    }
+
+    setupPolicyEventListeners() {
+        // Policy event listeners (only setup once)
+        document.getElementById('upgradePolicyBtn').addEventListener('click', () => this.upgradePolicy());
+        document.getElementById('switchPolicyBtn').addEventListener('click', () => this.switchPolicy());
     }
 
     /**
@@ -250,6 +257,9 @@ class HollyJsonApp {
             this.showEditor();
             this.refreshCharacterList();
             this.loadCinemaData();
+
+            // Initialize policy management
+            this.initializePolicyManagement();
 
             this.showMessage(`Save loaded! Found ${this.allCharacters.length} characters.`, 'success');
 
@@ -1647,6 +1657,179 @@ class HollyJsonApp {
         if (moviesWithCinemas.length === 0) {
             historyList.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 10px;">No cinema distribution history found</div>';
         }
+    }
+
+    /**
+     * Policy Management Functions
+     */
+    initializePolicyManagement() {
+        // Update display when save is loaded
+        this.updatePolicyDisplay();
+    }
+
+    getCurrentPolicy() {
+        if (!this.saveData || !this.saveData.stateJson) return null;
+
+        // Look for ACTIVE_POLICY in the save data
+        const gameState = this.saveData.stateJson;
+
+        // Check for ACTIVE_POLICY field
+        if (gameState.ACTIVE_POLICY) {
+            return gameState.ACTIVE_POLICY.replace('POLICY_', '');
+        }
+
+        // Check for active policy in milestones or other structures
+        if (gameState.milestones) {
+            const activePolicyMilestone = Object.values(gameState.milestones)
+                .find(milestone => milestone.id.includes('POLICY_') && milestone.finished);
+
+            if (activePolicyMilestone) {
+                const policyMatch = activePolicyMilestone.id.match(/POLICY_(\w+)_(\d+)/);
+                if (policyMatch) {
+                    return {
+                        type: policyMatch[1],
+                        level: parseInt(policyMatch[2])
+                    };
+                }
+            }
+        }
+
+        // Fallback: check for boutique policy level in studio info
+        if (gameState.boutiqueLevel !== undefined) {
+            return {
+                type: 'BOUTIQUE',
+                level: gameState.boutiqueLevel
+            };
+        }
+
+        return null;
+    }
+
+    updatePolicyDisplay() {
+        const currentPolicy = this.getCurrentPolicy();
+
+        const policyNameSpan = document.getElementById('currentPolicyName');
+        const policyLevelSpan = document.getElementById('currentPolicyLevel');
+
+        if (currentPolicy) {
+            if (typeof currentPolicy === 'string') {
+                policyNameSpan.textContent = currentPolicy;
+                policyLevelSpan.textContent = 'Unknown';
+            } else {
+                policyNameSpan.textContent = currentPolicy.type || 'Unknown';
+                policyLevelSpan.textContent = `Level ${currentPolicy.level}`;
+            }
+        } else {
+            policyNameSpan.textContent = 'None Active';
+            policyLevelSpan.textContent = '-';
+        }
+
+        this.updateMilestonesDisplay();
+    }
+
+    updateMilestonesDisplay() {
+        const milestonesGrid = document.getElementById('milestonesGrid');
+        milestonesGrid.innerHTML = '';
+
+        const policyTypes = ['BOUTIQUE', 'MAJOR', 'TRASH', 'CONVEYOR', 'AVERAGE'];
+
+        policyTypes.forEach(policyType => {
+            for (let level = 0; level <= 3; level++) {
+                const milestoneId = `POLICY_${policyType}_${level}`;
+                const milestoneItem = document.createElement('div');
+                milestoneItem.className = 'milestone-item';
+
+                // Check if milestone is completed
+                let isCompleted = false;
+                if (this.saveData?.stateJson?.milestones) {
+                    const milestone = this.saveData.stateJson.milestones[milestoneId];
+                    isCompleted = milestone && milestone.finished;
+                }
+
+                if (isCompleted) {
+                    milestoneItem.classList.add('completed');
+                }
+
+                const milestoneName = document.createElement('span');
+                milestoneName.className = 'milestone-name';
+                milestoneName.textContent = `${policyType} Level ${level}`;
+
+                const milestoneStatus = document.createElement('span');
+                milestoneStatus.className = `milestone-status ${isCompleted ? 'completed' : ''}`;
+                milestoneStatus.textContent = isCompleted ? 'Completed' : 'Locked';
+
+                milestoneItem.appendChild(milestoneName);
+                milestoneItem.appendChild(milestoneStatus);
+                milestonesGrid.appendChild(milestoneItem);
+            }
+        });
+    }
+
+    upgradePolicy() {
+        if (!this.saveData || !this.saveData.stateJson) {
+            this.showMessage('No save file loaded', 'error');
+            return;
+        }
+
+        const policyType = document.getElementById('policyTypeSelect').value;
+        const targetLevel = parseInt(document.getElementById('policyLevelSelect').value);
+
+        // Ensure milestones object exists
+        if (!this.saveData.stateJson.milestones) {
+            this.saveData.stateJson.milestones = {};
+        }
+
+        // Unlock all policy levels up to and including the target level
+        for (let level = 0; level <= targetLevel; level++) {
+            const milestoneId = `POLICY_${policyType}_${level}`;
+
+            if (!this.saveData.stateJson.milestones[milestoneId]) {
+                this.saveData.stateJson.milestones[milestoneId] = {
+                    id: milestoneId,
+                    group: "",
+                    finished: false,
+                    progress: 0.0,
+                    isActive: false,
+                    triggered: false,
+                    chains: []
+                };
+            }
+
+            // Mark as completed
+            this.saveData.stateJson.milestones[milestoneId].finished = true;
+            this.saveData.stateJson.milestones[milestoneId].progress = 1.0;
+        }
+
+        // Set the active policy
+        this.saveData.stateJson.ACTIVE_POLICY = `POLICY_${policyType}`;
+
+        // Update boutique level if it's a boutique policy
+        if (policyType === 'BOUTIQUE') {
+            this.saveData.stateJson.boutiqueLevel = targetLevel;
+        }
+
+        this.updatePolicyDisplay();
+        this.showMessage(`Upgraded ${policyType} policy to Level ${targetLevel}`, 'success');
+    }
+
+    switchPolicy() {
+        if (!this.saveData || !this.saveData.stateJson) {
+            this.showMessage('No save file loaded', 'error');
+            return;
+        }
+
+        const policyType = document.getElementById('policyTypeSelect').value;
+
+        // Simply switch the active policy type
+        this.saveData.stateJson.ACTIVE_POLICY = `POLICY_${policyType}`;
+
+        // Reset boutique level if switching away from boutique
+        if (policyType !== 'BOUTIQUE') {
+            this.saveData.stateJson.boutiqueLevel = 0;
+        }
+
+        this.updatePolicyDisplay();
+        this.showMessage(`Switched to ${policyType} policy`, 'success');
     }
 
     showMessage(text, type = 'info', duration = 3000) {

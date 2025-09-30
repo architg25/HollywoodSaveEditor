@@ -1105,3 +1105,136 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--border-color-dark);
 }
+
+/* Policy Management Section */
+.policy-section {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.policy-overview {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+.current-policy {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.policy-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.policy-info label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.policy-display {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+    min-width: 80px;
+    text-align: center;
+}
+
+.policy-controls {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+.policy-upgrade-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.policy-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.policy-field label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.policy-select {
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    background: var(--bg-primary);
+    font-size: 11px;
+}
+
+.policy-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.policy-status {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 12px;
+}
+
+.milestones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.milestone-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.milestone-item.completed {
+    background: #e8f5e8;
+    border-color: #4CAF50;
+}
+
+.milestone-name {
+    font-weight: 500;
+    font-size: 11px;
+}
+
+.milestone-status {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: var(--bg-tertiary);
+}
+
+.milestone-status.completed {
+    background: #4CAF50;
+    color: white;
+}

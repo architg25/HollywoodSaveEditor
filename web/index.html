@@ -273,6 +273,63 @@
             <!-- MISC Tab Content -->
             <div id="miscTab" class="tab-content" style="display: none;">
                 <div class="misc-panels">
+                    <!-- Policy Management Section -->
+                    <div class="policy-section">
+                        <h3>Policy Management</h3>
+
+                        <!-- Current Policy Display -->
+                        <div class="policy-overview">
+                            <div class="current-policy">
+                                <div class="policy-info">
+                                    <label>Current Active Policy:</label>
+                                    <span id="currentPolicyName" class="policy-display">-</span>
+                                </div>
+                                <div class="policy-info">
+                                    <label>Current Level:</label>
+                                    <span id="currentPolicyLevel" class="policy-display">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Policy Controls -->
+                        <div class="policy-controls">
+                            <h4>Policy Upgrades</h4>
+                            <div class="policy-upgrade-grid">
+                                <div class="policy-field">
+                                    <label for="policyTypeSelect">Policy Type:</label>
+                                    <select id="policyTypeSelect" class="policy-select">
+                                        <option value="BOUTIQUE">Boutique</option>
+                                        <option value="MAJOR">Major</option>
+                                        <option value="TRASH">Trash</option>
+                                        <option value="CONVEYOR">Conveyor</option>
+                                        <option value="AVERAGE">Average</option>
+                                    </select>
+                                </div>
+                                <div class="policy-field">
+                                    <label for="policyLevelSelect">Target Level:</label>
+                                    <select id="policyLevelSelect" class="policy-select">
+                                        <option value="0">Level 0 (Basic)</option>
+                                        <option value="1">Level 1</option>
+                                        <option value="2">Level 2</option>
+                                        <option value="3">Level 3 (Maximum)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="policy-actions">
+                                <button id="upgradePolicyBtn" class="btn btn-primary">Upgrade Policy</button>
+                                <button id="switchPolicyBtn" class="btn btn-secondary">Switch Policy Type</button>
+                            </div>
+                        </div>
+
+                        <!-- Policy Status Display -->
+                        <div class="policy-status">
+                            <h4>Policy Milestones Status</h4>
+                            <div class="milestones-grid" id="milestonesGrid">
+                                <!-- Policy milestones will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Cinema Management Section -->
                     <div class="cinema-section">
                         <h3>Cinema Management</h3>
