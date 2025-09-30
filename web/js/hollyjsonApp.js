@@ -304,6 +304,11 @@ class HollyJsonApp {
             // Contract (can be null in newSave)
             contract: char.contract || {},
 
+            // Executive upgrade bonuses
+            BonusCardMoney: char.BonusCardMoney || 0,
+            BonusCardInfluencePoints: char.BonusCardInfluencePoints || 0,
+            BonusForKinomark: char.BonusForKinomark || 0,
+
             // Calculated fields
             age: this.calculateAge(char),
             isDead: char.deathDate && char.deathDate !== '01-01-0001',
