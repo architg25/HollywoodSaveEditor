@@ -1348,49 +1348,50 @@ class HollyJsonApp {
             return;
         }
 
-        // Check if cinema data exists in the save file
-        // Looking for allCinemas, ownedCinemas or similar structures
-        let cinemaData = null;
+        // Look for cinema data in the save file
+        const stateJson = this.saveData.stateJson;
 
-        // Search for cinema-related fields in the save data
-        const searchCinemaData = (obj, path = '') => {
-            if (!obj || typeof obj !== 'object') return null;
-
-            for (const key in obj) {
-                if (key.toLowerCase().includes('cinema') || key.toLowerCase().includes('owned')) {
-                    console.log(`Found potential cinema data at ${path}.${key}:`, obj[key]);
-                    return obj[key];
-                }
-
-                if (typeof obj[key] === 'object') {
-                    const found = searchCinemaData(obj[key], `${path}.${key}`);
-                    if (found) return found;
-                }
-            }
-            return null;
-        };
-
-        cinemaData = searchCinemaData(this.saveData);
-
-        if (!cinemaData) {
-            // Cinema management not available for this save file format
+        if (!stateJson.allCinemas || !stateJson.ownedCinemas) {
             this.currentCinemaData = {
                 studioSlots: { 'PL': 0 },
                 independentSlots: 0,
                 totalSlots: 0,
                 available: false,
-                message: 'Cinema management not available - data structure not found in this save file'
+                message: 'Cinema management not available - allCinemas or ownedCinemas not found in this save file'
             };
-        } else {
-            // TODO: Parse the actual cinema data structure when found
-            this.currentCinemaData = {
-                studioSlots: { 'PL': 0 },
-                independentSlots: 0,
-                totalSlots: 0,
-                available: false,
-                message: 'Cinema data structure found but not yet implemented'
-            };
+            this.updateCinemaDisplay();
+            this.loadCinemaHistory();
+            return;
         }
+
+        const allCinemas = parseInt(stateJson.allCinemas) || 0;
+        const ownedCinemas = stateJson.ownedCinemas;
+
+        // Calculate owned slots per studio
+        const studioSlots = {};
+        let totalOwnedSlots = 0;
+
+        // Initialize all studios with 0 slots
+        Object.keys(this.studioMappings).forEach(studioId => {
+            studioSlots[studioId] = 0;
+        });
+
+        // Set actual owned slots from save data
+        for (const studioId in ownedCinemas) {
+            const slots = parseInt(ownedCinemas[studioId]) || 0;
+            studioSlots[studioId] = slots;
+            totalOwnedSlots += slots;
+        }
+
+        // Independent cinemas = total - all owned
+        const independentSlots = allCinemas - totalOwnedSlots;
+
+        this.currentCinemaData = {
+            studioSlots,
+            independentSlots,
+            totalSlots: allCinemas,
+            available: true
+        };
 
         this.updateCinemaDisplay();
         this.loadCinemaHistory();
