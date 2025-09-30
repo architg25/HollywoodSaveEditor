@@ -171,12 +171,6 @@ class HollyJsonApp {
         document.getElementById('maxSkillSingleBtn').addEventListener('click', () => this.setMaxSkillSingle());
         document.getElementById('maxDaysSingleBtn').addEventListener('click', () => this.setMaxDaysSingle());
 
-        // Executive upgrades
-        document.getElementById('upgradeMoneyBonus').addEventListener('change', this.updateSelectedCharacter.bind(this));
-        document.getElementById('upgradeInfluenceBonus').addEventListener('change', this.updateSelectedCharacter.bind(this));
-        document.getElementById('maxMoneyBonusBtn').addEventListener('click', () => this.setMaxMoneyBonus());
-        document.getElementById('maxInfluenceBonusBtn').addEventListener('click', () => this.setMaxInfluenceBonus());
-
         // Traits
         document.getElementById('addTraitBtn').addEventListener('click', this.addTrait.bind(this));
 
@@ -190,7 +184,6 @@ class HollyJsonApp {
         document.getElementById('maxContractDaysBtn').addEventListener('click', () => this.bulkSetMaxContractDays());
         document.getElementById('maxSkillBtn').addEventListener('click', () => this.bulkSetMaxSkill());
         document.getElementById('maxLimitBtn').addEventListener('click', () => this.bulkSetMaxLimit());
-        document.getElementById('maxExecutiveUpgradesBtn').addEventListener('click', () => this.bulkSetMaxExecutiveUpgrades());
         document.getElementById('setContractForSkillsBtn').addEventListener('click', () => this.bulkSetContractForSkills());
 
         // New age input system
@@ -301,10 +294,6 @@ class HollyJsonApp {
 
             // Contract (can be null in newSave)
             contract: char.contract || {},
-
-            // Executive upgrade bonuses
-            BonusCardMoney: char.BonusCardMoney || 0,
-            BonusCardInfluencePoints: char.BonusCardInfluencePoints || 0,
 
             // Calculated fields
             age: this.calculateAge(char),
@@ -591,9 +580,6 @@ class HollyJsonApp {
         // Skills
         this.populateCharacterSkills();
 
-        // Executive Upgrades (only for executives)
-        this.populateExecutiveUpgrades();
-
         // Sins
         this.populateCharacterSins();
     }
@@ -620,9 +606,6 @@ class HollyJsonApp {
         document.getElementById('characterSkills').innerHTML = '';
         document.getElementById('characterSins').innerHTML = '';
         document.getElementById('charPortrait').textContent = '👤';
-
-        // Hide executive upgrades section
-        document.getElementById('executiveUpgrades').style.display = 'none';
     }
 
     updateCharacterPortrait(char) {
@@ -724,21 +707,6 @@ class HollyJsonApp {
         });
     }
 
-    populateExecutiveUpgrades() {
-        const upgradeSection = document.getElementById('executiveUpgrades');
-
-        if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) {
-            upgradeSection.style.display = 'none';
-            return;
-        }
-
-        upgradeSection.style.display = 'block';
-
-        const upgrades = this.getExecutiveUpgrades(this.selectedCharacter);
-        document.getElementById('upgradeMoneyBonus').value = upgrades.moneyBonus * 10;
-        document.getElementById('upgradeInfluenceBonus').value = upgrades.influenceBonus * 10;
-    }
-
     updateSelectedCharacter(e) {
         if (!this.selectedCharacter) return;
 
@@ -823,14 +791,6 @@ class HollyJsonApp {
                 }
                 this.selectedCharacter.contract.weightToSalary = parseInt(value) || 0;
                 this.selectedCharacter._original.contract.weightToSalary = parseInt(value) || 0;
-                break;
-            case 'upgradeMoneyBonus':
-                this.selectedCharacter.BonusCardMoney = Math.floor((parseInt(value) || 0) / 10);
-                this.selectedCharacter._original.BonusCardMoney = Math.floor((parseInt(value) || 0) / 10);
-                break;
-            case 'upgradeInfluenceBonus':
-                this.selectedCharacter.BonusCardInfluencePoints = Math.floor((parseInt(value) || 0) / 10);
-                this.selectedCharacter._original.BonusCardInfluencePoints = Math.floor((parseInt(value) || 0) / 10);
                 break;
         }
 
@@ -990,32 +950,6 @@ class HollyJsonApp {
         this.showMessage(`Set max limit for ${this.filteredCharacters.length} characters`, 'success');
     }
 
-    bulkSetMaxExecutiveUpgrades() {
-        let executiveCount = 0;
-        this.filteredCharacters.forEach(char => {
-            if (this.isExecutive(char)) {
-                // Set bonus fields to max (stored as 4, displayed as 40%)
-                char.BonusCardMoney = 4;
-                char.BonusCardInfluencePoints = 4;
-
-                // Ensure _original data structure exists
-                if (!char._original) {
-                    char._original = {};
-                }
-
-                // Update original data as well
-                char._original.BonusCardMoney = 4;
-                char._original.BonusCardInfluencePoints = 4;
-
-                executiveCount++;
-            }
-        });
-
-        this.refreshCharacterList();
-        this.populateCharacterDetails();
-        this.showMessage(`Set max upgrades for ${executiveCount} executives`, 'success');
-    }
-
     bulkSetAgeFromInput() {
         const ageInput = document.getElementById('bulkAgeInput');
         const targetAge = parseInt(ageInput.value);
@@ -1100,28 +1034,6 @@ class HollyJsonApp {
         this.populateCharacterDetails();
         this.refreshCharacterList();
         this.showMessage('Set max contract days', 'success');
-    }
-
-    setMaxMoneyBonus() {
-        if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
-
-        this.selectedCharacter.BonusCardMoney = 4;  // Stored as 4, displayed as 40%
-        this.selectedCharacter._original.BonusCardMoney = 4;
-
-        this.populateCharacterDetails();
-        this.refreshCharacterList();
-        this.showMessage('Set max money bonus (40%)', 'success');
-    }
-
-    setMaxInfluenceBonus() {
-        if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
-
-        this.selectedCharacter.BonusCardInfluencePoints = 4;  // Stored as 4, displayed as 40%
-        this.selectedCharacter._original.BonusCardInfluencePoints = 4;
-
-        this.populateCharacterDetails();
-        this.refreshCharacterList();
-        this.showMessage('Set max influence bonus (40%)', 'success');
     }
 
     /**
@@ -1361,26 +1273,6 @@ class HollyJsonApp {
             'FilmEditor': 'Editor'
         };
         return professionMappings[profession] || profession || 'None';
-    }
-
-    /**
-     * Check if character is an executive (department head)
-     */
-    isExecutive(character) {
-        if (!character.professions) return false;
-
-        const professions = Object.keys(character.professions);
-        return professions.some(prof => prof.startsWith('Cpt') || prof.startsWith('Lieut'));
-    }
-
-    /**
-     * Get executive upgrade values from character data
-     */
-    getExecutiveUpgrades(character) {
-        return {
-            moneyBonus: character.BonusCardMoney || 0,
-            influenceBonus: character.BonusCardInfluencePoints || 0
-        };
     }
 
     formatDate(dateString) {
