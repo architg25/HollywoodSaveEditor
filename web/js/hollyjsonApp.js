@@ -1670,39 +1670,68 @@ class HollyJsonApp {
     getCurrentPolicy() {
         if (!this.saveData || !this.saveData.stateJson) return null;
 
-        // Look for ACTIVE_POLICY in the save data
         const gameState = this.saveData.stateJson;
 
-        // Check for ACTIVE_POLICY field
-        if (gameState.ACTIVE_POLICY) {
-            return gameState.ACTIVE_POLICY.replace('POLICY_', '');
+        // Check if policies are enabled in this save
+        if (!gameState.policyWasEnabled) {
+            return {
+                type: 'NONE',
+                level: 0,
+                notUnlocked: true
+            };
         }
 
-        // Check for active policy in milestones or other structures
-        if (gameState.milestones) {
-            const activePolicyMilestone = Object.values(gameState.milestones)
-                .find(milestone => milestone.id.includes('POLICY_') && milestone.finished);
+        // Check for mainPolicyId (actual field name)
+        if (gameState.mainPolicyId && gameState.mainPolicyId !== "") {
+            // Extract policy type and find highest completed level
+            const policyType = gameState.mainPolicyId.replace('POLICY_', '');
+            const highestLevel = this.getHighestCompletedPolicyLevel(policyType);
 
-            if (activePolicyMilestone) {
-                const policyMatch = activePolicyMilestone.id.match(/POLICY_(\w+)_(\d+)/);
-                if (policyMatch) {
+            return {
+                type: policyType,
+                level: highestLevel
+            };
+        }
+
+        // Check milestones to find any active policy
+        if (gameState.milestones) {
+            const policyTypes = ['BOUTIQUE', 'MAJOR', 'TRASH', 'CONVEYOR', 'AVERAGE'];
+
+            for (const policyType of policyTypes) {
+                const highestLevel = this.getHighestCompletedPolicyLevel(policyType);
+                if (highestLevel >= 0) {
                     return {
-                        type: policyMatch[1],
-                        level: parseInt(policyMatch[2])
+                        type: policyType,
+                        level: highestLevel
                     };
                 }
             }
         }
 
-        // Fallback: check for boutique policy level in studio info
-        if (gameState.boutiqueLevel !== undefined) {
-            return {
-                type: 'BOUTIQUE',
-                level: gameState.boutiqueLevel
-            };
+        // No active policy found but system is enabled
+        return {
+            type: 'NONE',
+            level: 0,
+            unlocked: true
+        };
+    }
+
+    getHighestCompletedPolicyLevel(policyType) {
+        if (!this.saveData?.stateJson?.milestones) return -1;
+
+        let highestLevel = -1;
+        for (let level = 0; level <= 3; level++) {
+            const milestoneId = `POLICY_${policyType}_${level}`;
+            const milestone = this.saveData.stateJson.milestones[milestoneId];
+
+            if (milestone && milestone.finished) {
+                highestLevel = level;
+            } else {
+                break; // Stop at first uncompleted level
+            }
         }
 
-        return null;
+        return highestLevel;
     }
 
     updatePolicyDisplay() {
@@ -1779,6 +1808,9 @@ class HollyJsonApp {
             this.saveData.stateJson.milestones = {};
         }
 
+        // Enable policy system if not already enabled
+        this.saveData.stateJson.policyWasEnabled = true;
+
         // Unlock all policy levels up to and including the target level
         for (let level = 0; level <= targetLevel; level++) {
             const milestoneId = `POLICY_${policyType}_${level}`;
@@ -1788,24 +1820,23 @@ class HollyJsonApp {
                     id: milestoneId,
                     group: "",
                     finished: false,
-                    progress: 0.0,
-                    isActive: false,
-                    triggered: false,
+                    locked: false,
+                    progress: "0.000",
                     chains: []
                 };
             }
 
             // Mark as completed
             this.saveData.stateJson.milestones[milestoneId].finished = true;
-            this.saveData.stateJson.milestones[milestoneId].progress = 1.0;
+            this.saveData.stateJson.milestones[milestoneId].progress = "1.000";
         }
 
-        // Set the active policy
-        this.saveData.stateJson.ACTIVE_POLICY = `POLICY_${policyType}`;
+        // Set the active policy (correct field name)
+        this.saveData.stateJson.mainPolicyId = `POLICY_${policyType}`;
 
-        // Update boutique level if it's a boutique policy
-        if (policyType === 'BOUTIQUE') {
-            this.saveData.stateJson.boutiqueLevel = targetLevel;
+        // Initialize major policy processes if not exists
+        if (!this.saveData.stateJson.majorPolicyProcesses) {
+            this.saveData.stateJson.majorPolicyProcesses = [];
         }
 
         this.updatePolicyDisplay();
@@ -1820,12 +1851,36 @@ class HollyJsonApp {
 
         const policyType = document.getElementById('policyTypeSelect').value;
 
-        // Simply switch the active policy type
-        this.saveData.stateJson.ACTIVE_POLICY = `POLICY_${policyType}`;
+        // Enable policy system if not already enabled
+        this.saveData.stateJson.policyWasEnabled = true;
 
-        // Reset boutique level if switching away from boutique
-        if (policyType !== 'BOUTIQUE') {
-            this.saveData.stateJson.boutiqueLevel = 0;
+        // Ensure milestones exist for the policy type (at least level 0)
+        if (!this.saveData.stateJson.milestones) {
+            this.saveData.stateJson.milestones = {};
+        }
+
+        const level0MilestoneId = `POLICY_${policyType}_0`;
+        if (!this.saveData.stateJson.milestones[level0MilestoneId]) {
+            this.saveData.stateJson.milestones[level0MilestoneId] = {
+                id: level0MilestoneId,
+                group: "",
+                finished: true,
+                locked: false,
+                progress: "1.000",
+                chains: []
+            };
+        } else {
+            // Ensure at least level 0 is completed
+            this.saveData.stateJson.milestones[level0MilestoneId].finished = true;
+            this.saveData.stateJson.milestones[level0MilestoneId].progress = "1.000";
+        }
+
+        // Switch the active policy type (correct field name)
+        this.saveData.stateJson.mainPolicyId = `POLICY_${policyType}`;
+
+        // Initialize major policy processes if not exists
+        if (!this.saveData.stateJson.majorPolicyProcesses) {
+            this.saveData.stateJson.majorPolicyProcesses = [];
         }
 
         this.updatePolicyDisplay();
