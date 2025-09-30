@@ -221,6 +221,25 @@
                         </div>
                     </div>
 
+                    <!-- Executive Upgrades (only shown for executives) -->
+                    <div id="executiveUpgrades" class="detail-section executive-upgrades" style="display: none;">
+                        <h3>Speed Upgrades</h3>
+                        <div class="upgrades-grid">
+                            <div class="upgrade-row">
+                                <label>Money Bonus</label>
+                                <input type="number" id="upgradeMoneyBonus" class="detail-input" step="1" min="0" max="50">
+                                <span class="upgrade-unit">%</span>
+                                <button id="maxMoneyBonusBtn" class="icon-btn">↑</button>
+                            </div>
+                            <div class="upgrade-row">
+                                <label>Influence Bonus</label>
+                                <input type="number" id="upgradeInfluenceBonus" class="detail-input" step="1" min="0" max="50">
+                                <span class="upgrade-unit">%</span>
+                                <button id="maxInfluenceBonusBtn" class="icon-btn">↑</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Traits -->
                     <div class="detail-section traits-section">
                         <h3>Traits</h3>

@@ -19,6 +19,15 @@ A comprehensive save editor for Hollywood Animal that combines:
 - **Age Calculation**: Automatic age calculation from birth date and game year
 - **Name Resolution**: Integration with CHARACTER_NAMES.json
 
+### Executives (corporate and lieutenants)
+- Identification: entries where `professions` has keys starting with `Cpt` (e.g., `CptHR`, `CptLawyer`, `CptFinancier`, `CptPR`) or `Lieut` (e.g., `LieutRelease`, `LieutTech`).
+- Displayed Department mapping (non-exhaustive):
+    - `CptHR` → HR, `CptLawyer` → Legal, `CptFinancier` → Finance, `CptPR` → PR
+    - `LieutRelease` → Distribution, `LieutTech` → Engineering (others may appear in different saves)
+- Columns: Department, Level (`level` when present), EXP (`xp`), Happiness (`mood`, 0–1 saved; shown as 0–100), Morale (`attitude`, 0–1 saved; shown as 0–100), Upgrade-Money (`BonusCardMoney` → 0–50%), Upgrade-Influence (`BonusCardInfluencePoints` → 0–50%).
+- Age editing uses shared behavior: change updates only the year in `birthDate`.
+
+
 ### ⚡ Bulk Operations (HollyJson Style)
 - **Mood & Attitude**: Mass set mood and attitude for selected characters
 - **Skills Management**: Set skill to limit, set skill to cap
