@@ -1681,12 +1681,23 @@ class HollyJsonApp {
             };
         }
 
-        // Check for mainPolicyId (actual field name)
+        // Check for ACTIVE_POLICY in persistentVariables (correct location)
+        if (gameState.persistentVariables && gameState.persistentVariables.ACTIVE_POLICY) {
+            const activePolicy = gameState.persistentVariables.ACTIVE_POLICY;
+            const policyType = activePolicy.replace('POLICY_', '');
+            const highestLevel = this.getHighestCompletedPolicyLevel(policyType);
+
+            return {
+                type: policyType,
+                level: highestLevel
+            };
+        }
+
+        // Legacy check for mainPolicyId (fallback)
         if (gameState.mainPolicyId && gameState.mainPolicyId !== "") {
-            // Handle both formats: "BOUTIQUE" or "POLICY_BOUTIQUE"
             let policyType = gameState.mainPolicyId;
             if (policyType.startsWith('POLICY_')) {
-                policyType = policyType.replace('POLICY_', '').replace('_0', '').replace('_1', '').replace('_2', '').replace('_3', '');
+                policyType = policyType.replace('POLICY_', '');
             }
 
             const highestLevel = this.getHighestCompletedPolicyLevel(policyType);
@@ -1851,8 +1862,11 @@ class HollyJsonApp {
             }
         }
 
-        // Set the active policy - try just the policy type name
-        this.saveData.stateJson.mainPolicyId = policyType;
+        // Set the active policy in persistentVariables (correct location)
+        if (!this.saveData.stateJson.persistentVariables) {
+            this.saveData.stateJson.persistentVariables = {};
+        }
+        this.saveData.stateJson.persistentVariables.ACTIVE_POLICY = `POLICY_${policyType}`;
 
         // Initialize major policy processes if not exists
         if (!this.saveData.stateJson.majorPolicyProcesses) {
@@ -1895,8 +1909,11 @@ class HollyJsonApp {
             this.saveData.stateJson.milestones[level0MilestoneId].progress = "1.000";
         }
 
-        // Switch the active policy type - try just the policy type name
-        this.saveData.stateJson.mainPolicyId = policyType;
+        // Switch the active policy in persistentVariables (correct location)
+        if (!this.saveData.stateJson.persistentVariables) {
+            this.saveData.stateJson.persistentVariables = {};
+        }
+        this.saveData.stateJson.persistentVariables.ACTIVE_POLICY = `POLICY_${policyType}`;
 
         // Initialize major policy processes if not exists
         if (!this.saveData.stateJson.majorPolicyProcesses) {
