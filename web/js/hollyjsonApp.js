@@ -882,13 +882,14 @@ class HollyJsonApp {
             if (!char._original.contract) {
                 char._original.contract = {};
             }
-            char.contract.DaysLeft = 9999;
-            char._original.contract.DaysLeft = 9999;
+            // Set contract years to 50 (max duration) instead of DaysLeft
+            char.contract.years = 50;
+            char._original.contract.years = 50;
         });
 
         this.refreshCharacterList();
         this.populateCharacterDetails();
-        this.showMessage(`Set max contract days for ${this.filteredCharacters.length} characters`, 'success');
+        this.showMessage(`Set contract years to 50 for ${this.filteredCharacters.length} characters`, 'success');
     }
 
     bulkSetContractForSkills() {
