@@ -174,10 +174,8 @@ class HollyJsonApp {
         // Executive upgrades
         document.getElementById('upgradeMoneyBonus').addEventListener('change', this.updateSelectedCharacter.bind(this));
         document.getElementById('upgradeInfluenceBonus').addEventListener('change', this.updateSelectedCharacter.bind(this));
-        document.getElementById('upgradeKinomarkBonus').addEventListener('change', this.updateSelectedCharacter.bind(this));
         document.getElementById('maxMoneyBonusBtn').addEventListener('click', () => this.setMaxMoneyBonus());
         document.getElementById('maxInfluenceBonusBtn').addEventListener('click', () => this.setMaxInfluenceBonus());
-        document.getElementById('maxKinomarkBonusBtn').addEventListener('click', () => this.setMaxKinomarkBonus());
 
         // Traits
         document.getElementById('addTraitBtn').addEventListener('click', this.addTrait.bind(this));
@@ -307,7 +305,6 @@ class HollyJsonApp {
             // Executive upgrade bonuses
             BonusCardMoney: char.BonusCardMoney || 0,
             BonusCardInfluencePoints: char.BonusCardInfluencePoints || 0,
-            BonusForKinomark: char.BonusForKinomark || 0,
 
             // Calculated fields
             age: this.calculateAge(char),
@@ -740,7 +737,6 @@ class HollyJsonApp {
         const upgrades = this.getExecutiveUpgrades(this.selectedCharacter);
         document.getElementById('upgradeMoneyBonus').value = upgrades.moneyBonus;
         document.getElementById('upgradeInfluenceBonus').value = upgrades.influenceBonus;
-        document.getElementById('upgradeKinomarkBonus').value = upgrades.kinomarkBonus;
     }
 
     updateSelectedCharacter(e) {
@@ -835,10 +831,6 @@ class HollyJsonApp {
             case 'upgradeInfluenceBonus':
                 this.selectedCharacter.BonusCardInfluencePoints = parseInt(value) || 0;
                 this.selectedCharacter._original.BonusCardInfluencePoints = parseInt(value) || 0;
-                break;
-            case 'upgradeKinomarkBonus':
-                this.selectedCharacter.BonusForKinomark = parseInt(value) || 0;
-                this.selectedCharacter._original.BonusForKinomark = parseInt(value) || 0;
                 break;
         }
 
@@ -1002,10 +994,9 @@ class HollyJsonApp {
         let executiveCount = 0;
         this.filteredCharacters.forEach(char => {
             if (this.isExecutive(char)) {
-                // Ensure bonus fields exist and set to max (50%)
-                char.BonusCardMoney = 50;
-                char.BonusCardInfluencePoints = 50;
-                char.BonusForKinomark = 50;
+                // Set bonus fields to max (40%)
+                char.BonusCardMoney = 40;
+                char.BonusCardInfluencePoints = 40;
 
                 // Ensure _original data structure exists
                 if (!char._original) {
@@ -1013,9 +1004,8 @@ class HollyJsonApp {
                 }
 
                 // Update original data as well
-                char._original.BonusCardMoney = 50;
-                char._original.BonusCardInfluencePoints = 50;
-                char._original.BonusForKinomark = 50;
+                char._original.BonusCardMoney = 40;
+                char._original.BonusCardInfluencePoints = 40;
 
                 executiveCount++;
             }
@@ -1115,34 +1105,23 @@ class HollyJsonApp {
     setMaxMoneyBonus() {
         if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
 
-        this.selectedCharacter.BonusCardMoney = 50;
-        this.selectedCharacter._original.BonusCardMoney = 50;
+        this.selectedCharacter.BonusCardMoney = 40;
+        this.selectedCharacter._original.BonusCardMoney = 40;
 
         this.populateCharacterDetails();
         this.refreshCharacterList();
-        this.showMessage('Set max money bonus (50%)', 'success');
+        this.showMessage('Set max money bonus (40%)', 'success');
     }
 
     setMaxInfluenceBonus() {
         if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
 
-        this.selectedCharacter.BonusCardInfluencePoints = 50;
-        this.selectedCharacter._original.BonusCardInfluencePoints = 50;
+        this.selectedCharacter.BonusCardInfluencePoints = 40;
+        this.selectedCharacter._original.BonusCardInfluencePoints = 40;
 
         this.populateCharacterDetails();
         this.refreshCharacterList();
-        this.showMessage('Set max influence bonus (50%)', 'success');
-    }
-
-    setMaxKinomarkBonus() {
-        if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
-
-        this.selectedCharacter.BonusForKinomark = 50;
-        this.selectedCharacter._original.BonusForKinomark = 50;
-
-        this.populateCharacterDetails();
-        this.refreshCharacterList();
-        this.showMessage('Set max kinomark bonus (50%)', 'success');
+        this.showMessage('Set max influence bonus (40%)', 'success');
     }
 
     /**
@@ -1400,8 +1379,7 @@ class HollyJsonApp {
     getExecutiveUpgrades(character) {
         return {
             moneyBonus: character.BonusCardMoney || 0,
-            influenceBonus: character.BonusCardInfluencePoints || 0,
-            kinomarkBonus: character.BonusForKinomark || 0
+            influenceBonus: character.BonusCardInfluencePoints || 0
         };
     }
 
