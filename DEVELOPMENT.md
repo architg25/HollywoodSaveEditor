@@ -6,6 +6,27 @@ A comprehensive save editor for Hollywood Animal that combines:
 - **hollywood_animal_editor's** web-based simplicity and cross-platform compatibility
 - **HollyJson's** advanced editing features like bulk operations, trait management, and sophisticated UI
 
+## 🚀 Field Discovery Tool (NEW!)
+
+### **Quick Start**
+```javascript
+// In browser console after loading a save file:
+createFieldDiscovery(window.hollyjsonApp.saveData);
+
+// Now use discovery commands:
+discovery.search('policy');           // Find policy-related fields
+discovery.quickSearches.money();      // Find money-related fields
+discovery.explore('stateJson.characters[0]'); // Explore character structure
+```
+
+### **Rapid Feature Development Workflow**
+1. **Discovery (2-5 min)**: `discovery.search('your_feature')`
+2. **Analysis (1-2 min)**: `discovery.explore('stateJson.section')`
+3. **Testing (5-10 min)**: Test modifications in console
+4. **Implementation (10-15 min)**: Add to HTML/JS
+
+**📖 See `FIELD_DISCOVERY_GUIDE.md` for complete documentation and examples.**
+
 ## Features Implemented
 
 ### 🏗️ Core Architecture
