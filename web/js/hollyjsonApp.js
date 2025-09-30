@@ -189,6 +189,9 @@ class HollyJsonApp {
         // New age input system
         document.getElementById('setBulkAgeBtn').addEventListener('click', () => this.bulkSetAgeFromInput());
 
+        // Salary input system
+        document.getElementById('setBulkSalaryBtn').addEventListener('click', () => this.bulkSetSalaryFromInput());
+
         // Tab system
         document.getElementById('charactersTabBtn').addEventListener('click', () => this.switchTab('characters'));
         document.getElementById('miscTabBtn').addEventListener('click', () => this.switchTab('misc'));
@@ -975,6 +978,25 @@ class HollyJsonApp {
         this.refreshCharacterList();
         this.populateCharacterDetails();
         this.showMessage(`Set age to ${targetAge} for ${this.filteredCharacters.length} characters`, 'success');
+    }
+
+    bulkSetSalaryFromInput() {
+        const salaryInput = document.getElementById('bulkSalaryInput');
+        const targetSalary = parseInt(salaryInput.value);
+
+        if (!targetSalary || targetSalary < 0) {
+            this.showMessage('Please enter a valid salary amount', 'error');
+            return;
+        }
+
+        this.filteredCharacters.forEach(char => {
+            char.monthlySalary = targetSalary;
+            char._original.monthlySalary = targetSalary;
+        });
+
+        this.refreshCharacterList();
+        this.populateCharacterDetails();
+        this.showMessage(`Set monthly salary to $${targetSalary.toLocaleString()} for ${this.filteredCharacters.length} characters`, 'success');
     }
 
     /**
