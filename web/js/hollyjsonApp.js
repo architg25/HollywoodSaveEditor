@@ -941,15 +941,21 @@ class HollyJsonApp {
 
     bulkSetMaxSkill() {
         this.filteredCharacters.forEach(char => {
-            if (char.primaryProfession && char.professions[char.primaryProfession] !== undefined) {
-                char.professions[char.primaryProfession] = char.limit;
-                char._original.professions[char.primaryProfession] = char.limit.toFixed(3);
+            // Max out white tag skills (ACTION, DRAMA, COMEDY, etc.)
+            if (char.whiteTagsNEW && char._original.whiteTagsNEW) {
+                Object.keys(char.whiteTagsNEW).forEach(skillKey => {
+                    // Set skill to maximum value (1.0)
+                    if (char.whiteTagsNEW[skillKey] && char.whiteTagsNEW[skillKey].overallValues) {
+                        char.whiteTagsNEW[skillKey].overallValues = [1.0];
+                        char._original.whiteTagsNEW[skillKey].overallValues = ["1.000"];
+                    }
+                });
             }
         });
 
         this.refreshCharacterList();
         this.populateCharacterDetails();
-        this.showMessage(`Set skills to limit for ${this.filteredCharacters.length} characters`, 'success');
+        this.showMessage(`Maxed out white tag skills for ${this.filteredCharacters.length} characters`, 'success');
     }
 
     bulkSetMaxLimit() {
