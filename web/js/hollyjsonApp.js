@@ -882,9 +882,9 @@ class HollyJsonApp {
             if (!char._original.contract) {
                 char._original.contract = {};
             }
-            // Set contract years to 50 (max duration) instead of DaysLeft
-            char.contract.years = 50;
-            char._original.contract.years = 50;
+            // Set contract amount to 50 (max duration in years) instead of DaysLeft
+            char.contract.amount = 50;
+            char._original.contract.amount = 50;
         });
 
         this.refreshCharacterList();
