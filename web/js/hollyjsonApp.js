@@ -192,6 +192,7 @@ class HollyJsonApp {
         document.getElementById('maxContractDaysBtn').addEventListener('click', () => this.bulkSetMaxContractDays());
         document.getElementById('maxSkillBtn').addEventListener('click', () => this.bulkSetMaxSkill());
         document.getElementById('maxLimitBtn').addEventListener('click', () => this.bulkSetMaxLimit());
+        document.getElementById('maxExecutiveUpgradesBtn').addEventListener('click', () => this.bulkSetMaxExecutiveUpgrades());
         document.getElementById('setContractForSkillsBtn').addEventListener('click', () => this.bulkSetContractForSkills());
 
         // New age input system
@@ -990,6 +991,29 @@ class HollyJsonApp {
         this.refreshCharacterList();
         this.populateCharacterDetails();
         this.showMessage(`Set max limit for ${this.filteredCharacters.length} characters`, 'success');
+    }
+
+    bulkSetMaxExecutiveUpgrades() {
+        let executiveCount = 0;
+        this.filteredCharacters.forEach(char => {
+            if (this.isExecutive(char)) {
+                // Set all executive upgrade bonuses to max (50%)
+                char.BonusCardMoney = 50;
+                char.BonusCardInfluencePoints = 50;
+                char.BonusForKinomark = 50;
+
+                // Update original data as well
+                char._original.BonusCardMoney = 50;
+                char._original.BonusCardInfluencePoints = 50;
+                char._original.BonusForKinomark = 50;
+
+                executiveCount++;
+            }
+        });
+
+        this.refreshCharacterList();
+        this.populateCharacterDetails();
+        this.showMessage(`Set max upgrades for ${executiveCount} executives`, 'success');
     }
 
     bulkSetAgeFromInput() {
