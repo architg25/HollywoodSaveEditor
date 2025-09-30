@@ -1222,6 +1222,11 @@ body {
     border-color: #4CAF50;
 }
 
+.milestone-item.unlocked {
+    background: #fff3cd;
+    border-color: #ffc107;
+}
+
 .milestone-name {
     font-weight: 500;
     font-size: 11px;
@@ -1237,4 +1242,14 @@ body {
 .milestone-status.completed {
     background: #4CAF50;
     color: white;
+}
+
+.milestone-status.unlocked {
+    background: #ffc107;
+    color: black;
+}
+
+.milestone-status.locked {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
 }

@@ -1768,15 +1768,22 @@ class HollyJsonApp {
                 const milestoneItem = document.createElement('div');
                 milestoneItem.className = 'milestone-item';
 
-                // Check if milestone is completed
+                // Check milestone status
                 let isCompleted = false;
+                let isLocked = true;
+
                 if (this.saveData?.stateJson?.milestones) {
                     const milestone = this.saveData.stateJson.milestones[milestoneId];
-                    isCompleted = milestone && milestone.finished;
+                    if (milestone) {
+                        isCompleted = milestone.finished;
+                        isLocked = milestone.locked !== false; // Default to locked if not specified
+                    }
                 }
 
                 if (isCompleted) {
                     milestoneItem.classList.add('completed');
+                } else if (!isLocked) {
+                    milestoneItem.classList.add('unlocked');
                 }
 
                 const milestoneName = document.createElement('span');
@@ -1784,8 +1791,8 @@ class HollyJsonApp {
                 milestoneName.textContent = `${policyType} Level ${level}`;
 
                 const milestoneStatus = document.createElement('span');
-                milestoneStatus.className = `milestone-status ${isCompleted ? 'completed' : ''}`;
-                milestoneStatus.textContent = isCompleted ? 'Completed' : 'Locked';
+                milestoneStatus.className = `milestone-status ${isCompleted ? 'completed' : !isLocked ? 'unlocked' : 'locked'}`;
+                milestoneStatus.textContent = isCompleted ? 'Completed' : !isLocked ? 'Available' : 'Locked';
 
                 milestoneItem.appendChild(milestoneName);
                 milestoneItem.appendChild(milestoneStatus);
@@ -1820,15 +1827,24 @@ class HollyJsonApp {
                     id: milestoneId,
                     group: "",
                     finished: false,
-                    locked: false,
+                    locked: true,
                     progress: "0.000",
                     chains: []
                 };
             }
 
-            // Mark as completed
+            // Mark as completed AND unlocked
             this.saveData.stateJson.milestones[milestoneId].finished = true;
+            this.saveData.stateJson.milestones[milestoneId].locked = false;
             this.saveData.stateJson.milestones[milestoneId].progress = "1.000";
+        }
+
+        // Also unlock the next level (but don't complete it)
+        if (targetLevel < 3) {
+            const nextMilestoneId = `POLICY_${policyType}_${targetLevel + 1}`;
+            if (this.saveData.stateJson.milestones[nextMilestoneId]) {
+                this.saveData.stateJson.milestones[nextMilestoneId].locked = false;
+            }
         }
 
         // Set the active policy (correct field name)
