@@ -1344,65 +1344,53 @@ class HollyJsonApp {
      * Cinema Management Methods
      */
     loadCinemaData() {
-        if (!this.saveData || !this.saveData.stateJson || !this.saveData.stateJson.movies) {
+        if (!this.saveData || !this.saveData.stateJson) {
             return;
         }
 
-        // Find the most recent movie with release data to get current cinema distribution
-        const movies = this.saveData.stateJson.movies;
-        const studioSlots = {};
-        let totalSlots = 0;
-        let independentSlots = 0;
-        let latestMovie = null;
-        let latestReleaseDate = 0;
+        // Check if cinema data exists in the save file
+        // Looking for allCinemas, ownedCinemas or similar structures
+        let cinemaData = null;
 
-        // Initialize all studios with 0 slots
-        Object.keys(this.studioMappings).forEach(studioId => {
-            studioSlots[studioId] = 0;
-        });
+        // Search for cinema-related fields in the save data
+        const searchCinemaData = (obj, path = '') => {
+            if (!obj || typeof obj !== 'object') return null;
 
-        // Find the most recent movie with complete release data
-        for (const movie of movies) {
-            if (movie.stageResults && movie.stageResults.Release) {
-                const releaseData = movie.stageResults.Release;
+            for (const key in obj) {
+                if (key.toLowerCase().includes('cinema') || key.toLowerCase().includes('owned')) {
+                    console.log(`Found potential cinema data at ${path}.${key}:`, obj[key]);
+                    return obj[key];
+                }
 
-                if (releaseData.ourSlotsLastWeekCurrScreening !== undefined && releaseData.otherSlotsLastWeekCurrScreening !== undefined) {
-                    const movieDate = movie.developmentEndDate || movie.id || 0;
-
-                    if (movieDate > latestReleaseDate) {
-                        latestReleaseDate = movieDate;
-                        latestMovie = movie;
-                    }
+                if (typeof obj[key] === 'object') {
+                    const found = searchCinemaData(obj[key], `${path}.${key}`);
+                    if (found) return found;
                 }
             }
-        }
-
-        // Use the most recent movie's data for current cinema distribution
-        if (latestMovie && latestMovie.stageResults && latestMovie.stageResults.Release) {
-            const releaseData = latestMovie.stageResults.Release;
-            const playerSlots = parseInt(releaseData.ourSlotsLastWeekCurrScreening) || 0;
-            independentSlots = parseInt(releaseData.otherSlotsLastWeekCurrScreening) || 0;
-
-            // Set player studio slots
-            studioSlots['PL'] = playerSlots;
-
-            // For now, assume all non-player slots are independent until we find other studio data
-            // TODO: Find actual competitor studio distribution data
-
-            totalSlots = playerSlots + independentSlots;
-        } else {
-            // No release data found, set default values
-            studioSlots['PL'] = 0;
-            independentSlots = 0;
-            totalSlots = 0;
-        }
-
-        this.currentCinemaData = {
-            studioSlots,
-            independentSlots,
-            totalSlots,
-            sourceMovie: latestMovie
+            return null;
         };
+
+        cinemaData = searchCinemaData(this.saveData);
+
+        if (!cinemaData) {
+            // Cinema management not available for this save file format
+            this.currentCinemaData = {
+                studioSlots: { 'PL': 0 },
+                independentSlots: 0,
+                totalSlots: 0,
+                available: false,
+                message: 'Cinema management not available - data structure not found in this save file'
+            };
+        } else {
+            // TODO: Parse the actual cinema data structure when found
+            this.currentCinemaData = {
+                studioSlots: { 'PL': 0 },
+                independentSlots: 0,
+                totalSlots: 0,
+                available: false,
+                message: 'Cinema data structure found but not yet implemented'
+            };
+        }
 
         this.updateCinemaDisplay();
         this.loadCinemaHistory();
@@ -1411,7 +1399,18 @@ class HollyJsonApp {
     updateCinemaDisplay() {
         if (!this.currentCinemaData) return;
 
-        const { studioSlots, independentSlots, totalSlots } = this.currentCinemaData;
+        const { studioSlots, independentSlots, totalSlots, available, message } = this.currentCinemaData;
+
+        if (!available && message) {
+            // Show message that cinema management is not available
+            document.getElementById('totalCinemaSlots').textContent = 'N/A';
+            document.getElementById('independentSlots').textContent = 'N/A';
+            document.getElementById('independentPercentage').textContent = '(N/A)';
+
+            const studiosGrid = document.getElementById('studiosGrid');
+            studiosGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-muted); font-style: italic;">${message}</div>`;
+            return;
+        }
 
         // Update overview header
         document.getElementById('totalCinemaSlots').textContent = totalSlots.toLocaleString();
