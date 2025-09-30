@@ -1683,8 +1683,12 @@ class HollyJsonApp {
 
         // Check for mainPolicyId (actual field name)
         if (gameState.mainPolicyId && gameState.mainPolicyId !== "") {
-            // Extract policy type and find highest completed level
-            const policyType = gameState.mainPolicyId.replace('POLICY_', '');
+            // Handle both formats: "BOUTIQUE" or "POLICY_BOUTIQUE"
+            let policyType = gameState.mainPolicyId;
+            if (policyType.startsWith('POLICY_')) {
+                policyType = policyType.replace('POLICY_', '').replace('_0', '').replace('_1', '').replace('_2', '').replace('_3', '');
+            }
+
             const highestLevel = this.getHighestCompletedPolicyLevel(policyType);
 
             return {
@@ -1847,8 +1851,8 @@ class HollyJsonApp {
             }
         }
 
-        // Set the active policy (correct field name)
-        this.saveData.stateJson.mainPolicyId = `POLICY_${policyType}`;
+        // Set the active policy - try just the policy type name
+        this.saveData.stateJson.mainPolicyId = policyType;
 
         // Initialize major policy processes if not exists
         if (!this.saveData.stateJson.majorPolicyProcesses) {
@@ -1891,12 +1895,22 @@ class HollyJsonApp {
             this.saveData.stateJson.milestones[level0MilestoneId].progress = "1.000";
         }
 
-        // Switch the active policy type (correct field name)
-        this.saveData.stateJson.mainPolicyId = `POLICY_${policyType}`;
+        // Switch the active policy type - try just the policy type name
+        this.saveData.stateJson.mainPolicyId = policyType;
 
         // Initialize major policy processes if not exists
         if (!this.saveData.stateJson.majorPolicyProcesses) {
             this.saveData.stateJson.majorPolicyProcesses = [];
+        }
+
+        // Initialize boutique-specific fields if switching to boutique
+        if (policyType === 'BOUTIQUE') {
+            if (this.saveData.stateJson.boutique2LastYearChecked === undefined) {
+                this.saveData.stateJson.boutique2LastYearChecked = 0;
+            }
+            if (!this.saveData.stateJson.boutique2CategoriesWon) {
+                this.saveData.stateJson.boutique2CategoriesWon = [];
+            }
         }
 
         this.updatePolicyDisplay();
