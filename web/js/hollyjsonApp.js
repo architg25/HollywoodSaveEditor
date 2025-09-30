@@ -735,8 +735,8 @@ class HollyJsonApp {
         upgradeSection.style.display = 'block';
 
         const upgrades = this.getExecutiveUpgrades(this.selectedCharacter);
-        document.getElementById('upgradeMoneyBonus').value = upgrades.moneyBonus;
-        document.getElementById('upgradeInfluenceBonus').value = upgrades.influenceBonus;
+        document.getElementById('upgradeMoneyBonus').value = upgrades.moneyBonus * 10;
+        document.getElementById('upgradeInfluenceBonus').value = upgrades.influenceBonus * 10;
     }
 
     updateSelectedCharacter(e) {
@@ -825,12 +825,12 @@ class HollyJsonApp {
                 this.selectedCharacter._original.contract.weightToSalary = parseInt(value) || 0;
                 break;
             case 'upgradeMoneyBonus':
-                this.selectedCharacter.BonusCardMoney = parseInt(value) || 0;
-                this.selectedCharacter._original.BonusCardMoney = parseInt(value) || 0;
+                this.selectedCharacter.BonusCardMoney = Math.floor((parseInt(value) || 0) / 10);
+                this.selectedCharacter._original.BonusCardMoney = Math.floor((parseInt(value) || 0) / 10);
                 break;
             case 'upgradeInfluenceBonus':
-                this.selectedCharacter.BonusCardInfluencePoints = parseInt(value) || 0;
-                this.selectedCharacter._original.BonusCardInfluencePoints = parseInt(value) || 0;
+                this.selectedCharacter.BonusCardInfluencePoints = Math.floor((parseInt(value) || 0) / 10);
+                this.selectedCharacter._original.BonusCardInfluencePoints = Math.floor((parseInt(value) || 0) / 10);
                 break;
         }
 
@@ -994,9 +994,9 @@ class HollyJsonApp {
         let executiveCount = 0;
         this.filteredCharacters.forEach(char => {
             if (this.isExecutive(char)) {
-                // Set bonus fields to max (40%)
-                char.BonusCardMoney = 40;
-                char.BonusCardInfluencePoints = 40;
+                // Set bonus fields to max (stored as 4, displayed as 40%)
+                char.BonusCardMoney = 4;
+                char.BonusCardInfluencePoints = 4;
 
                 // Ensure _original data structure exists
                 if (!char._original) {
@@ -1004,8 +1004,8 @@ class HollyJsonApp {
                 }
 
                 // Update original data as well
-                char._original.BonusCardMoney = 40;
-                char._original.BonusCardInfluencePoints = 40;
+                char._original.BonusCardMoney = 4;
+                char._original.BonusCardInfluencePoints = 4;
 
                 executiveCount++;
             }
@@ -1105,8 +1105,8 @@ class HollyJsonApp {
     setMaxMoneyBonus() {
         if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
 
-        this.selectedCharacter.BonusCardMoney = 40;
-        this.selectedCharacter._original.BonusCardMoney = 40;
+        this.selectedCharacter.BonusCardMoney = 4;  // Stored as 4, displayed as 40%
+        this.selectedCharacter._original.BonusCardMoney = 4;
 
         this.populateCharacterDetails();
         this.refreshCharacterList();
@@ -1116,8 +1116,8 @@ class HollyJsonApp {
     setMaxInfluenceBonus() {
         if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
 
-        this.selectedCharacter.BonusCardInfluencePoints = 40;
-        this.selectedCharacter._original.BonusCardInfluencePoints = 40;
+        this.selectedCharacter.BonusCardInfluencePoints = 4;  // Stored as 4, displayed as 40%
+        this.selectedCharacter._original.BonusCardInfluencePoints = 4;
 
         this.populateCharacterDetails();
         this.refreshCharacterList();
