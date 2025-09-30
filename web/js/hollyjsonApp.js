@@ -1135,10 +1135,8 @@ class HollyJsonApp {
 
             let suggestedName;
             if (this.originalFileName) {
-                // Keep original name but add _edited
-                const baseName = this.originalFileName.replace(/\.[^/.]+$/, '');
-                const extension = this.originalFileName.match(/\.[^/.]+$/)?.[0] || '.json';
-                suggestedName = `${baseName}_edited${extension}`;
+                // Keep original name without modification
+                suggestedName = this.originalFileName;
             } else {
                 suggestedName = `${studioName}_${gameDate}_${timestamp}.json`.replace(/[^a-zA-Z0-9-_.]/g, '_');
             }

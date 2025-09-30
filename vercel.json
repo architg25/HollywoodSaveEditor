@@ -1,0 +1,26 @@
+{
+  "buildCommand": "echo 'No build required - static site'",
+  "outputDirectory": "web",
+  "devCommand": "python -m http.server 8000 --directory web",
+  "installCommand": "echo 'No install required'",
+  "headers": [
+    {
+      "source": "/js/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        }
+      ]
+    },
+    {
+      "source": "/css/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/css"
+        }
+      ]
+    }
+  ]
+}
