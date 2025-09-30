@@ -997,10 +997,15 @@ class HollyJsonApp {
         let executiveCount = 0;
         this.filteredCharacters.forEach(char => {
             if (this.isExecutive(char)) {
-                // Set all executive upgrade bonuses to max (50%)
+                // Ensure bonus fields exist and set to max (50%)
                 char.BonusCardMoney = 50;
                 char.BonusCardInfluencePoints = 50;
                 char.BonusForKinomark = 50;
+
+                // Ensure _original data structure exists
+                if (!char._original) {
+                    char._original = {};
+                }
 
                 // Update original data as well
                 char._original.BonusCardMoney = 50;
