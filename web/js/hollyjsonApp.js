@@ -1348,41 +1348,54 @@ class HollyJsonApp {
             return;
         }
 
-        // Find all movies with release data to gather studio distribution
+        // Find the most recent movie with release data to get current cinema distribution
         const movies = this.saveData.stateJson.movies;
         const studioSlots = {};
         let totalSlots = 0;
         let independentSlots = 0;
         let latestMovie = null;
+        let latestReleaseDate = 0;
 
         // Initialize all studios with 0 slots
         Object.keys(this.studioMappings).forEach(studioId => {
             studioSlots[studioId] = 0;
         });
 
-        // Aggregate slots from all movies to get current distribution
+        // Find the most recent movie with complete release data
         for (const movie of movies) {
             if (movie.stageResults && movie.stageResults.Release) {
                 const releaseData = movie.stageResults.Release;
-                const studioId = movie.studioId || 'PL'; // Default to player if no studioId
 
-                if (releaseData.ourSlotsLastWeekCurrScreening && releaseData.otherSlotsLastWeekCurrScreening) {
-                    const movieStudioSlots = parseInt(releaseData.ourSlotsLastWeekCurrScreening) || 0;
-                    const movieIndependentSlots = parseInt(releaseData.otherSlotsLastWeekCurrScreening) || 0;
+                if (releaseData.ourSlotsLastWeekCurrScreening !== undefined && releaseData.otherSlotsLastWeekCurrScreening !== undefined) {
+                    const movieDate = movie.developmentEndDate || movie.id || 0;
 
-                    // Accumulate slots per studio (using the latest distribution for each studio)
-                    studioSlots[studioId] = Math.max(studioSlots[studioId], movieStudioSlots);
-                    independentSlots = Math.max(independentSlots, movieIndependentSlots);
-
-                    if (!latestMovie || (movie.developmentEndDate || movie.id || 0) > (latestMovie.developmentEndDate || latestMovie.id || 0)) {
+                    if (movieDate > latestReleaseDate) {
+                        latestReleaseDate = movieDate;
                         latestMovie = movie;
                     }
                 }
             }
         }
 
-        // Calculate total slots
-        totalSlots = independentSlots + Object.values(studioSlots).reduce((sum, slots) => sum + slots, 0);
+        // Use the most recent movie's data for current cinema distribution
+        if (latestMovie && latestMovie.stageResults && latestMovie.stageResults.Release) {
+            const releaseData = latestMovie.stageResults.Release;
+            const playerSlots = parseInt(releaseData.ourSlotsLastWeekCurrScreening) || 0;
+            independentSlots = parseInt(releaseData.otherSlotsLastWeekCurrScreening) || 0;
+
+            // Set player studio slots
+            studioSlots['PL'] = playerSlots;
+
+            // For now, assume all non-player slots are independent until we find other studio data
+            // TODO: Find actual competitor studio distribution data
+
+            totalSlots = playerSlots + independentSlots;
+        } else {
+            // No release data found, set default values
+            studioSlots['PL'] = 0;
+            independentSlots = 0;
+            totalSlots = 0;
+        }
 
         this.currentCinemaData = {
             studioSlots,
