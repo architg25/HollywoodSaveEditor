@@ -835,30 +835,6 @@ body {
     text-align: right;
 }
 
-/* Executive Upgrades */
-.upgrades-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.upgrade-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: wrap;
-}
-.upgrade-row label {
-    font-size: 11px;
-    font-weight: 500;
-    min-width: 80px;
-    text-align: right;
-}
-.upgrade-unit {
-    font-size: 11px;
-    color: var(--text-muted);
-    min-width: 15px;
-}
-
 /* Traits Section */
 .traits-controls {
     display: flex;

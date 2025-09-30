@@ -171,12 +171,6 @@ class HollyJsonApp {
         document.getElementById('maxSkillSingleBtn').addEventListener('click', () => this.setMaxSkillSingle());
         document.getElementById('maxDaysSingleBtn').addEventListener('click', () => this.setMaxDaysSingle());
 
-        // Executive upgrades
-        document.getElementById('upgradeMoneyBonus').addEventListener('change', this.updateSelectedCharacter.bind(this));
-        document.getElementById('upgradeInfluenceBonus').addEventListener('change', this.updateSelectedCharacter.bind(this));
-        document.getElementById('maxMoneyBonusBtn').addEventListener('click', () => this.setMaxMoneyBonus());
-        document.getElementById('maxInfluenceBonusBtn').addEventListener('click', () => this.setMaxInfluenceBonus());
-
         // Traits
         document.getElementById('addTraitBtn').addEventListener('click', this.addTrait.bind(this));
 
@@ -194,6 +188,9 @@ class HollyJsonApp {
 
         // New age input system
         document.getElementById('setBulkAgeBtn').addEventListener('click', () => this.bulkSetAgeFromInput());
+
+        // Salary input system
+        document.getElementById('setBulkSalaryBtn').addEventListener('click', () => this.bulkSetSalaryFromInput());
 
         // Tab system
         document.getElementById('charactersTabBtn').addEventListener('click', () => this.switchTab('characters'));
@@ -586,9 +583,6 @@ class HollyJsonApp {
         // Skills
         this.populateCharacterSkills();
 
-        // Executive Upgrades (only for executives)
-        this.populateExecutiveUpgrades();
-
         // Sins
         this.populateCharacterSins();
     }
@@ -615,9 +609,6 @@ class HollyJsonApp {
         document.getElementById('characterSkills').innerHTML = '';
         document.getElementById('characterSins').innerHTML = '';
         document.getElementById('charPortrait').textContent = '👤';
-
-        // Hide executive upgrades section
-        document.getElementById('executiveUpgrades').style.display = 'none';
     }
 
     updateCharacterPortrait(char) {
@@ -719,21 +710,6 @@ class HollyJsonApp {
         });
     }
 
-    populateExecutiveUpgrades() {
-        const upgradeSection = document.getElementById('executiveUpgrades');
-
-        if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) {
-            upgradeSection.style.display = 'none';
-            return;
-        }
-
-        upgradeSection.style.display = 'block';
-
-        const upgrades = this.getExecutiveUpgrades(this.selectedCharacter);
-        document.getElementById('upgradeMoneyBonus').value = upgrades.moneyBonus;
-        document.getElementById('upgradeInfluenceBonus').value = upgrades.influenceBonus;
-    }
-
     updateSelectedCharacter(e) {
         if (!this.selectedCharacter) return;
 
@@ -818,14 +794,6 @@ class HollyJsonApp {
                 }
                 this.selectedCharacter.contract.weightToSalary = parseInt(value) || 0;
                 this.selectedCharacter._original.contract.weightToSalary = parseInt(value) || 0;
-                break;
-            case 'upgradeMoneyBonus':
-                this.selectedCharacter.BonusCardMoney = parseInt(value) || 0;
-                this.selectedCharacter._original.BonusCardMoney = parseInt(value) || 0;
-                break;
-            case 'upgradeInfluenceBonus':
-                this.selectedCharacter.BonusCardInfluencePoints = parseInt(value) || 0;
-                this.selectedCharacter._original.BonusCardInfluencePoints = parseInt(value) || 0;
                 break;
         }
 
@@ -1012,6 +980,25 @@ class HollyJsonApp {
         this.showMessage(`Set age to ${targetAge} for ${this.filteredCharacters.length} characters`, 'success');
     }
 
+    bulkSetSalaryFromInput() {
+        const salaryInput = document.getElementById('bulkSalaryInput');
+        const targetSalary = parseInt(salaryInput.value);
+
+        if (!targetSalary || targetSalary < 0) {
+            this.showMessage('Please enter a valid salary amount', 'error');
+            return;
+        }
+
+        this.filteredCharacters.forEach(char => {
+            char.monthlySalary = targetSalary;
+            char._original.monthlySalary = targetSalary;
+        });
+
+        this.refreshCharacterList();
+        this.populateCharacterDetails();
+        this.showMessage(`Set monthly salary to $${targetSalary.toLocaleString()} for ${this.filteredCharacters.length} characters`, 'success');
+    }
+
     /**
      * Single character actions (↑ buttons)
      */
@@ -1069,28 +1056,6 @@ class HollyJsonApp {
         this.populateCharacterDetails();
         this.refreshCharacterList();
         this.showMessage('Set max contract days', 'success');
-    }
-
-    setMaxMoneyBonus() {
-        if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
-
-        this.selectedCharacter.BonusCardMoney = 50;
-        this.selectedCharacter._original.BonusCardMoney = 50;
-
-        this.populateCharacterDetails();
-        this.refreshCharacterList();
-        this.showMessage('Set max money bonus (50%)', 'success');
-    }
-
-    setMaxInfluenceBonus() {
-        if (!this.selectedCharacter || !this.isExecutive(this.selectedCharacter)) return;
-
-        this.selectedCharacter.BonusCardInfluencePoints = 50;
-        this.selectedCharacter._original.BonusCardInfluencePoints = 50;
-
-        this.populateCharacterDetails();
-        this.refreshCharacterList();
-        this.showMessage('Set max influence bonus (50%)', 'success');
     }
 
     /**
@@ -1332,26 +1297,6 @@ class HollyJsonApp {
         return professionMappings[profession] || profession || 'None';
     }
 
-    /**
-     * Check if character is an executive (department head)
-     */
-    isExecutive(character) {
-        if (!character.professions) return false;
-
-        const professions = Object.keys(character.professions);
-        return professions.some(prof => prof.startsWith('Cpt') || prof.startsWith('Lieut'));
-    }
-
-    /**
-     * Get executive upgrade values from character data
-     */
-    getExecutiveUpgrades(character) {
-        return {
-            moneyBonus: character.BonusCardMoney || 0,
-            influenceBonus: character.BonusCardInfluencePoints || 0
-        };
-    }
-
     formatDate(dateString) {
         if (!dateString || dateString === '01-01-0001') return '';
 
@@ -1399,52 +1344,53 @@ class HollyJsonApp {
      * Cinema Management Methods
      */
     loadCinemaData() {
-        if (!this.saveData || !this.saveData.stateJson || !this.saveData.stateJson.movies) {
+        if (!this.saveData || !this.saveData.stateJson) {
             return;
         }
 
-        // Find all movies with release data to gather studio distribution
-        const movies = this.saveData.stateJson.movies;
-        const studioSlots = {};
-        let totalSlots = 0;
-        let independentSlots = 0;
-        let latestMovie = null;
+        // Check if cinema data exists in the save file
+        // Looking for allCinemas, ownedCinemas or similar structures
+        let cinemaData = null;
 
-        // Initialize all studios with 0 slots
-        Object.keys(this.studioMappings).forEach(studioId => {
-            studioSlots[studioId] = 0;
-        });
+        // Search for cinema-related fields in the save data
+        const searchCinemaData = (obj, path = '') => {
+            if (!obj || typeof obj !== 'object') return null;
 
-        // Aggregate slots from all movies to get current distribution
-        for (const movie of movies) {
-            if (movie.stageResults && movie.stageResults.Release) {
-                const releaseData = movie.stageResults.Release;
-                const studioId = movie.studioId || 'PL'; // Default to player if no studioId
+            for (const key in obj) {
+                if (key.toLowerCase().includes('cinema') || key.toLowerCase().includes('owned')) {
+                    console.log(`Found potential cinema data at ${path}.${key}:`, obj[key]);
+                    return obj[key];
+                }
 
-                if (releaseData.ourSlotsLastWeekCurrScreening && releaseData.otherSlotsLastWeekCurrScreening) {
-                    const movieStudioSlots = parseInt(releaseData.ourSlotsLastWeekCurrScreening) || 0;
-                    const movieIndependentSlots = parseInt(releaseData.otherSlotsLastWeekCurrScreening) || 0;
-
-                    // Accumulate slots per studio (using the latest distribution for each studio)
-                    studioSlots[studioId] = Math.max(studioSlots[studioId], movieStudioSlots);
-                    independentSlots = Math.max(independentSlots, movieIndependentSlots);
-
-                    if (!latestMovie || (movie.developmentEndDate || movie.id || 0) > (latestMovie.developmentEndDate || latestMovie.id || 0)) {
-                        latestMovie = movie;
-                    }
+                if (typeof obj[key] === 'object') {
+                    const found = searchCinemaData(obj[key], `${path}.${key}`);
+                    if (found) return found;
                 }
             }
-        }
-
-        // Calculate total slots
-        totalSlots = independentSlots + Object.values(studioSlots).reduce((sum, slots) => sum + slots, 0);
-
-        this.currentCinemaData = {
-            studioSlots,
-            independentSlots,
-            totalSlots,
-            sourceMovie: latestMovie
+            return null;
         };
+
+        cinemaData = searchCinemaData(this.saveData);
+
+        if (!cinemaData) {
+            // Cinema management not available for this save file format
+            this.currentCinemaData = {
+                studioSlots: { 'PL': 0 },
+                independentSlots: 0,
+                totalSlots: 0,
+                available: false,
+                message: 'Cinema management not available - data structure not found in this save file'
+            };
+        } else {
+            // TODO: Parse the actual cinema data structure when found
+            this.currentCinemaData = {
+                studioSlots: { 'PL': 0 },
+                independentSlots: 0,
+                totalSlots: 0,
+                available: false,
+                message: 'Cinema data structure found but not yet implemented'
+            };
+        }
 
         this.updateCinemaDisplay();
         this.loadCinemaHistory();
@@ -1453,7 +1399,18 @@ class HollyJsonApp {
     updateCinemaDisplay() {
         if (!this.currentCinemaData) return;
 
-        const { studioSlots, independentSlots, totalSlots } = this.currentCinemaData;
+        const { studioSlots, independentSlots, totalSlots, available, message } = this.currentCinemaData;
+
+        if (!available && message) {
+            // Show message that cinema management is not available
+            document.getElementById('totalCinemaSlots').textContent = 'N/A';
+            document.getElementById('independentSlots').textContent = 'N/A';
+            document.getElementById('independentPercentage').textContent = '(N/A)';
+
+            const studiosGrid = document.getElementById('studiosGrid');
+            studiosGrid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: var(--text-muted); font-style: italic;">${message}</div>`;
+            return;
+        }
 
         // Update overview header
         document.getElementById('totalCinemaSlots').textContent = totalSlots.toLocaleString();

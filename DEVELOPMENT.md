@@ -24,7 +24,7 @@ A comprehensive save editor for Hollywood Animal that combines:
 - Displayed Department mapping (non-exhaustive):
     - `CptHR` → HR, `CptLawyer` → Legal, `CptFinancier` → Finance, `CptPR` → PR
     - `LieutRelease` → Distribution, `LieutTech` → Engineering (others may appear in different saves)
-- Columns: Department, Level (`level` when present), EXP (`xp`), Happiness (`mood`, 0–1 saved; shown as 0–100), Morale (`attitude`, 0–1 saved; shown as 0–100), Upgrade-Money (`BonusCardMoney` → 0–50%), Upgrade-Influence (`BonusCardInfluencePoints` → 0–50%).
+- Columns: Department, Level (`level` when present), EXP (`xp`), Happiness (`mood`, 0–1 saved; shown as 0–100), Morale (`attitude`, 0–1 saved; shown as 0–100), Upgrade-Money (`BonusCardMoney` → 0–40%), Upgrade-Influence (`BonusCardInfluencePoints` → 0–40%).
 - Age editing uses shared behavior: change updates only the year in `birthDate`.
 
 

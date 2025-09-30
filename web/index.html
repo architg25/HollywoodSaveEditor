@@ -136,6 +136,11 @@
                             <input type="number" id="bulkAgeInput" min="18" max="99" placeholder="25" class="age-input">
                             <button id="setBulkAgeBtn" class="bulk-btn">Apply Age</button>
                         </div>
+                        <div class="salary-section">
+                            <label for="bulkSalaryInput">Set Monthly Salary:</label>
+                            <input type="number" id="bulkSalaryInput" min="0" placeholder="5000" class="salary-input">
+                            <button id="setBulkSalaryBtn" class="bulk-btn">Set Salary</button>
+                        </div>
                     </div>
                 </div>
 
@@ -217,25 +222,6 @@
                                 <input type="number" id="contractMonthlySalary" class="detail-input" min="0">
                                 <label>W/s</label>
                                 <input type="number" id="contractWeeklySalary" class="detail-input" min="0">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Executive Upgrades (only shown for executives) -->
-                    <div id="executiveUpgrades" class="detail-section executive-upgrades" style="display: none;">
-                        <h3>Speed Upgrades</h3>
-                        <div class="upgrades-grid">
-                            <div class="upgrade-row">
-                                <label>Money Bonus</label>
-                                <input type="number" id="upgradeMoneyBonus" class="detail-input" step="1" min="0" max="50">
-                                <span class="upgrade-unit">%</span>
-                                <button id="maxMoneyBonusBtn" class="icon-btn">↑</button>
-                            </div>
-                            <div class="upgrade-row">
-                                <label>Influence Bonus</label>
-                                <input type="number" id="upgradeInfluenceBonus" class="detail-input" step="1" min="0" max="50">
-                                <span class="upgrade-unit">%</span>
-                                <button id="maxInfluenceBonusBtn" class="icon-btn">↑</button>
                             </div>
                         </div>
                     </div>
